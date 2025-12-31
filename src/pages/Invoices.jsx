@@ -5,7 +5,7 @@ import {
   serviceAPI,
   clothingTypeAPI,
 } from "../api/api";
-import { Plus, CheckCircle, XCircle } from "lucide-react";
+import { Plus, CheckCircle, XCircle, MessageCircle, CreditCard } from "lucide-react";
 import Dropdown from "../components/Dropdown";
 
 const Invoices = () => {
@@ -194,14 +194,25 @@ const Invoices = () => {
                       : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {invoice.paymentStatus === "PENDING" && (
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleMarkPaid(invoice._id)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Mark Payment Done"
                       >
-                        Mark Paid
+                        <CreditCard className="w-4 h-4" />
                       </button>
-                    )}
+                      <button
+                        onClick={() => {
+                          // TODO: Handle send message
+                          console.log("Send message for invoice:", invoice._id);
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Send Invoice Message"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
