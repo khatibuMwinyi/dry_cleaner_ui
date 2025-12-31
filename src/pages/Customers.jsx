@@ -98,7 +98,7 @@ const Customers = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-[#F8F8F9] divide-y divide-gray-00">
+            <tbody className="bg-[#F8F8F9] divide-y divide-gray-200">
               {filteredCustomers.map((customer) => (
                 <tr key={customer._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
