@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { customerAPI, invoiceAPI } from "../api/api";
 import { Plus, Search } from "lucide-react";
+import Loader from "../components/Loader";
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -48,7 +49,7 @@ const Customers = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Customers</h1>
           <p className="text-gray-600 mt-1">Manage your customer database</p>
@@ -79,7 +80,12 @@ const Customers = () => {
       {/* Customers Table */}
       <div className="bg-[#F8F8F9] rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-8 text-center text-gray-500">
+            <div className="text-gray-500 flex flex-col items-center justify-center">
+              <Loader />
+              Loading...
+            </div>
+          </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

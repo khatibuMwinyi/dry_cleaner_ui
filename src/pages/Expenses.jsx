@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { expenseAPI } from '../api/api';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import Loader from '../components/Loader';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -68,7 +69,7 @@ const Expenses = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Expenses</h1>
           <p className="text-gray-600 mt-1">Track and manage business expenses</p>
@@ -79,7 +80,7 @@ const Expenses = () => {
             setFormData({ category: '', amount: '', description: '', date: '' });
             setShowModal(true);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Add Expense
@@ -87,11 +88,11 @@ const Expenses = () => {
       </div>
 
       {/* Summary Card */}
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-[#F8F8F9] p-6 rounded-lg shadow">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600">Total Expenses</p>
-            <p className="text-3xl font-bold text-red-600 mt-1">
+            <p className="text-xl font-bold text-red-600 mt-1">
               TSh {totalExpenses.toLocaleString()}
             </p>
           </div>
@@ -102,7 +103,12 @@ const Expenses = () => {
       {/* Expenses Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-8 text-center text-gray-500">
+            <div className="text-gray-500 flex flex-col items-center justify-center">
+              <Loader />
+              Loading...
+            </div>
+          </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -167,7 +173,7 @@ const Expenses = () => {
                   required
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
                   placeholder="e.g., Rent, Utilities, Supplies"
                 />
               </div>
@@ -180,7 +186,7 @@ const Expenses = () => {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
                 />
               </div>
               <div>
@@ -188,7 +194,7 @@ const Expenses = () => {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
                   rows="3"
                 />
               </div>
@@ -199,13 +205,13 @@ const Expenses = () => {
                   required
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
                 />
               </div>
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                  className="flex-1 bg-[#2D3A58] hover:bg-[#0F172A] text-white py-2 rounded-lg"
                 >
                   {editingExpense ? 'Update' : 'Create'}
                 </button>

@@ -24,9 +24,9 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-[#DDE1E8]">
-      <div className="flex">
+      <div className="flex items-start">
         {/* Sidebar */}
-        <aside className="w-64 bg-[#F8F8F9] shadow-lg min-h-screen">
+        <aside className="w-64 bg-[#F8F8F9] shadow-lg sticky top-0 h-screen overflow-y-auto">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-[#0F172A]">
               Oweru International

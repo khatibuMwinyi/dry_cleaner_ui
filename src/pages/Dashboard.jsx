@@ -63,7 +63,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500 flex flex-col items-center justify-bottom">
+        <div className="text-gray-500 flex flex-col items-center justify-center">
           <Loader />
           Loading dashboard data...
         </div>
@@ -73,12 +73,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
         <p className="text-gray-600 mt-1">
           Financial analytics and business insights
         </p>
       </div>
+      <hr className="w-full h-1 bg-gray-200"/>
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
