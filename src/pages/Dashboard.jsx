@@ -17,7 +17,7 @@ import Loader from "../components/Loader";
 
 const Dashboard = () => {
   const [financialData, setFinancialData] = useState(null);
-  const [weeklyData, setWeeklyData] = useState([]);
+  const [dailyData, setDailyData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [topCustomers, setTopCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,15 +29,28 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [financial, weekly, monthly, topCust] = await Promise.all([
-        analyticsAPI.getFinancial({ period: "month" }),
-        analyticsAPI.getWeekly(),
+      const [financial, daily, monthly, topCust] = await Promise.all([
+        analyticsAPI.getFinancial({ period: "year" }),
+        analyticsAPI.getDaily(),
         analyticsAPI.getMonthly(),
         analyticsAPI.getTopCustomers(5),
       ]);
 
       setFinancialData(financial.data);
-      setWeeklyData(weekly.data);
+      
+      // Format daily data to include month labels
+      const formattedDailyData = daily.data.map((item) => {
+        const date = new Date(item.date);
+        const monthName = date.toLocaleString("default", { month: "short" });
+        const dayNumber = date.getDate();
+        return {
+          ...item,
+          dayLabel: `${dayNumber} ${monthName}`,
+          monthLabel: date.toLocaleString("default", { month: "long", year: "numeric" }),
+        };
+      });
+      setDailyData(formattedDailyData);
+      
       setMonthlyData(monthly.data);
       setTopCustomers(topCust.data);
     } catch (error) {
@@ -120,17 +133,48 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Analytics */}
+        {/* Daily Analytics */}
         <div className="bg-[#F8F8F9] p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">
-            Weekly Revenue vs Expenses
+            Daily Revenue vs Expenses
           </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={weeklyData}>
+          <ResponsiveContainer width="100%" height={370}>
+            <BarChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="week" />
-              <YAxis domain={[10000, 20000]} ticks={[10000, 20000]} />
-              <Tooltip formatter={(value) => `TSh ${value.toLocaleString()}`} />
+              <XAxis 
+                dataKey="dayLabel" 
+                angle={-45} 
+                textAnchor="end" 
+                height={100}
+                interval={2}
+                tickFormatter={(value, index) => {
+                  const dataPoint = dailyData[index];
+                  if (dataPoint && dataPoint.date) {
+                    const date = new Date(dataPoint.date);
+                    const dayOfMonth = date.getDate();
+                    // Show month name on 1st of each month
+                    if (dayOfMonth === 1) {
+                      return date.toLocaleString("default", { month: "short" });
+                    }
+                  }
+                  // Return just the day number for other days
+                  return value.split(" ")[0];
+                }}
+              />
+              <YAxis 
+                domain={[0, 20000]} 
+                
+              />
+              <Tooltip 
+                formatter={(value) => `TSh ${value.toLocaleString()}`}
+                labelFormatter={(value, payload) => {
+                  if (payload && payload[0] && payload[0].payload) {
+                    const dataPoint = payload[0].payload;
+                    return `${dataPoint.dayLabel} - ${dataPoint.monthLabel}`;
+                  }
+                  return value;
+                }}
+              />
               <Legend />
               <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
               <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
@@ -143,11 +187,20 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold mb-4">
             Monthly Revenue vs Expenses
           </h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={350}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
-              <YAxis domain={[10000, 20000]} ticks={[10000, 20000]} />
+              <XAxis 
+                dataKey="month" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80}
+                
+              />
+              <YAxis 
+                domain={[0, 150000]} 
+                
+              />
               <Tooltip formatter={(value) => `TSh ${value.toLocaleString()}`} />
               <Legend />
               <Line

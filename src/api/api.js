@@ -58,7 +58,7 @@ export const inventoryAPI = {
 // Analytics
 export const analyticsAPI = {
   getFinancial: (params) => api.get('/analytics/financial', { params }),
-  getWeekly: () => api.get('/analytics/weekly'),
+  getDaily: () => api.get('/analytics/daily'),
   getMonthly: () => api.get('/analytics/monthly'),
   getTopCustomers: (limit) => api.get('/analytics/top-customers', { params: { limit } }),
   getCustomerExpenses: (customerId, params) => api.get(`/analytics/customers/${customerId}/expenses`, { params }),
