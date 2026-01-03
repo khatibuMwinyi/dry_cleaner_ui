@@ -25,6 +25,8 @@ export const serviceAPI = {
 export const clothingTypeAPI = {
   getAll: () => api.get('/clothing-types'),
   create: (data) => api.post('/clothing-types', data),
+  update: (id, data) => api.put(`/clothing-types/${id}`, data),
+  delete: (id) => api.delete(`/clothing-types/${id}`),
 };
 
 // Invoices
