@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { clothingTypeAPI, serviceAPI } from "../api/api";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import Loader from "../components/Loader";
@@ -56,7 +57,7 @@ const ClothingTypes = () => {
       });
       fetchData();
     } catch (error) {
-      alert(
+      toast.error(
         "Error saving clothing type: " +
           (error.response?.data?.message || error.message)
       );
@@ -84,7 +85,7 @@ const ClothingTypes = () => {
       await clothingTypeAPI.delete(id);
       fetchData();
     } catch (error) {
-      alert(
+      toast.error(
         "Error deleting clothing type: " +
           (error.response?.data?.message || error.message)
       );

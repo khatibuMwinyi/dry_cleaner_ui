@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { customerAPI, invoiceAPI } from "../api/api";
 import { Plus, Search } from "lucide-react";
 import Loader from "../components/Loader";
@@ -33,8 +34,9 @@ const Customers = () => {
       setShowModal(false);
       setFormData({ name: "", phone: "", email: "" });
       fetchCustomers();
+      toast.success("Customer created successfully!");
     } catch (error) {
-      alert(
+      toast.error(
         "Error creating customer: " +
           (error.response?.data?.message || error.message)
       );

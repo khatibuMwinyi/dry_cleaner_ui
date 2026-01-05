@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   invoiceAPI,
   customerAPI,
@@ -12,6 +13,9 @@ import {
   MessageCircle,
   CreditCard,
   Send,
+  Eye,
+  X,
+  Download,
 } from "lucide-react";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
@@ -23,6 +27,8 @@ const Invoices = () => {
   const [clothingTypes, setClothingTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [previewModal, setPreviewModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [formData, setFormData] = useState({
     customerId: "",
     items: [{ clothingTypeId: "", serviceId: "", quantity: 1 }],
@@ -59,9 +65,10 @@ const Invoices = () => {
   const handleMarkPaid = async (id) => {
     try {
       await invoiceAPI.markPaid(id);
+      toast.success("Invoice marked as paid successfully!");
       fetchData();
     } catch (error) {
-      alert(
+      toast.error(
         "Error marking invoice as paid: " +
           (error.response?.data?.message || error.message)
       );
@@ -71,9 +78,9 @@ const Invoices = () => {
   const handleSendPickupNotification = async (id) => {
     try {
       await invoiceAPI.sendPickupNotification(id);
-      alert("Pickup notification sent!");
+      toast.success("Pickup notification sent successfully!");
     } catch (error) {
-      alert(
+      toast.error(
         "Error sending pickup notification: " +
           (error.response?.data?.message || error.message)
       );
@@ -83,10 +90,22 @@ const Invoices = () => {
   const handleSendWhatsappInvoice = async (id) => {
     try {
       await invoiceAPI.sendWhatsappInvoice(id);
-      alert("Invoice sent via WhatsApp!");
+      toast.success("Invoice sent via WhatsApp successfully!");
     } catch (error) {
-      alert(
+      toast.error(
         "Error sending WhatsApp invoice: " +
+          (error.response?.data?.message || error.message)
+      );
+    }
+  };
+
+  const handlePreviewInvoice = async (invoice) => {
+    try {
+      setSelectedInvoice(invoice);
+      setPreviewModal(true);
+    } catch (error) {
+      toast.error(
+        "Error opening invoice preview: " +
           (error.response?.data?.message || error.message)
       );
     }
@@ -129,8 +148,9 @@ const Invoices = () => {
         pickupDate: "",
       });
       fetchData();
+      toast.success("Invoice created successfully!");
     } catch (error) {
-      alert(
+      toast.error(
         "Error creating invoice: " +
           (error.response?.data?.message || error.message)
       );
@@ -226,6 +246,14 @@ const Invoices = () => {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center gap-4">
+                      <button
+                        onClick={() => handlePreviewInvoice(invoice)}
+                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                        title="Preview Invoice"
+                      >
+                        <Eye className="w-5 h-5" />
+                      </button>
+
                       <button
                         onClick={() => handleMarkPaid(invoice._id)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
@@ -407,6 +435,52 @@ const Invoices = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Preview Modal */}
+      {previewModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
+              <button
+                onClick={() => setPreviewModal(false)}
+                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* PDF Preview */}
+            <div className="p-6">
+              <iframe
+                src={`/api/invoices/${selectedInvoice._id}/pdf`}
+                className="w-full h-[600px] border rounded-lg"
+                title="Invoice PDF Preview"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
+              <a
+                href={`/api/invoices/${selectedInvoice._id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                <Download className="w-4 h-4" />
+                Open in New Tab
+              </a>
+              <button
+                onClick={() => setPreviewModal(false)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#2D3A58] text-white rounded-lg hover:bg-[#0F172A]"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

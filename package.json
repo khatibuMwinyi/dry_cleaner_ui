@@ -15,6 +15,7 @@
     "react-dom": "^18.2.0",
     "react-loader-spinner": "^8.0.0",
     "react-router-dom": "^6.20.0",
+    "react-toastify": "^11.0.5",
     "recharts": "^2.10.3"
   },
   "devDependencies": {
@@ -27,5 +28,3 @@
     "vite": "^5.0.8"
   }
 }
-
-

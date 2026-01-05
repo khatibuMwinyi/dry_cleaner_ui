@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { expenseAPI } from '../api/api';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import Loader from '../components/Loader';
@@ -39,7 +40,7 @@ const Expenses = () => {
       setFormData({ category: '', amount: '', description: '', date: '' });
       fetchExpenses();
     } catch (error) {
-      alert('Error saving expense: ' + (error.response?.data?.message || error.message));
+      toast.error('Error saving expense: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -60,7 +61,7 @@ const Expenses = () => {
         await expenseAPI.delete(id);
         fetchExpenses();
       } catch (error) {
-        alert('Error deleting expense: ' + (error.response?.data?.message || error.message));
+        toast.error('Error deleting expense: ' + (error.response?.data?.message || error.message));
       }
     }
   };

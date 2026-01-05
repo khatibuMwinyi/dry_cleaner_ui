@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { serviceAPI } from '../api/api';
 import { Plus } from 'lucide-react';
 import Loader from '../components/Loader';
@@ -32,8 +33,9 @@ const Services = () => {
       setShowModal(false);
       setFormData({ name: '', basePrice: '' });
       fetchServices();
+      toast.success('Service created successfully!');
     } catch (error) {
-      alert('Error creating service: ' + (error.response?.data?.message || error.message));
+      toast.error('Error creating service: ' + (error.response?.data?.message || error.message));
     }
   };
 
