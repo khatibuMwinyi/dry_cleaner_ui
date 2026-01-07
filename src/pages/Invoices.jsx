@@ -99,13 +99,14 @@ const Invoices = () => {
     }
   };
 
-  const handlePreviewInvoice = async (invoice) => {
+  const handleEmailInvoice = async (id) => {
     try {
-      setSelectedInvoice(invoice);
-      setPreviewModal(true);
+      toast.info("Sending invoice via email...");
+      await invoiceAPI.send(id);
+      toast.success("Invoice emailed to customer.");
     } catch (error) {
       toast.error(
-        "Error opening invoice preview: " +
+        "Error emailing invoice: " +
           (error.response?.data?.message || error.message)
       );
     }
@@ -247,14 +248,17 @@ const Invoices = () => {
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center gap-4">
                       <button
-                        onClick={() => handlePreviewInvoice(invoice)}
-                        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                        onClick={() => {
+                          setSelectedInvoice(invoice);
+                          setPreviewModal(true);
+                        }}
+                        className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
                         title="Preview Invoice"
                       >
                         <Eye className="w-5 h-5" />
                       </button>
 
-                      <button
+                                            <button
                         onClick={() => handleMarkPaid(invoice._id)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
                         title="Mark as Paid"
@@ -289,6 +293,110 @@ const Invoices = () => {
       </div>
 
       {/* Create Invoice Modal */}
+      {/* Preview Invoice Modal */}
+      {previewModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">Invoice Preview</h2>
+                <p className="text-sm text-gray-600">#{selectedInvoice._id.slice(-6)}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setPreviewModal(false);
+                  setSelectedInvoice(null);
+                }}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Customer</h3>
+                <p className="text-gray-900">{selectedInvoice.customerId?.name || 'N/A'}</p>
+                <p className="text-sm text-gray-600">{selectedInvoice.customerId?.phone}</p>
+                <p className="text-sm text-gray-600">{selectedInvoice.customerId?.address}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Dates</h3>
+                <p className="text-gray-900">Submitted: {selectedInvoice.createdAt ? new Date(selectedInvoice.createdAt).toLocaleDateString() : '-'}</p>
+                <p className="text-gray-900">Pickup: {selectedInvoice.pickupDate ? new Date(selectedInvoice.pickupDate).toLocaleDateString() : '-'}</p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-600">
+                    <th className="pb-2">Item</th>
+                    <th className="pb-2">Service</th>
+                    <th className="pb-2 text-right">Qty</th>
+                    <th className="pb-2 text-right">Price</th>
+                    <th className="pb-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedInvoice.items?.map((item, idx) => {
+                    const name = item.clothingTypeName || (item.clothingType?.name) || 'Item';
+                    const service = item.serviceName || (item.service?.name) || '';
+                    const qty = item.quantity || 1;
+                    const price = item.unitPrice || item.price || 0;
+                    const line = item.totalPrice || price * qty;
+                    return (
+                      <tr key={idx} className="border-t">
+                        <td className="py-2">{name}</td>
+                        <td className="py-2">{service}</td>
+                        <td className="py-2 text-right">{qty}</td>
+                        <td className="py-2 text-right">TSh {price.toLocaleString()}</td>
+                        <td className="py-2 text-right">TSh {line.toLocaleString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <div className="mt-4 flex justify-end">
+                <div className="w-64">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>TSh {(selectedInvoice.subtotal || selectedInvoice.total || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Discount</span>
+                    <span>TSh {selectedInvoice.discount?.toLocaleString() || 0}</span>
+                  </div>
+                  <div className="flex justify-between font-medium mt-2">
+                    <span>Total</span>
+                    <span>TSh {selectedInvoice.total?.toLocaleString() || 0}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => handleEmailInvoice(selectedInvoice._id)}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+              >
+                Email PDF
+              </button>
+              <button
+                onClick={() => {
+                  setPreviewModal(false);
+                  setSelectedInvoice(null);
+                }}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -435,52 +543,6 @@ const Invoices = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Invoice Preview Modal */}
-      {previewModal && selectedInvoice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
-              <button
-                onClick={() => setPreviewModal(false)}
-                className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* PDF Preview */}
-            <div className="p-6">
-              <iframe
-                src={`/api/invoices/${selectedInvoice._id}/pdf`}
-                className="w-full h-[600px] border rounded-lg"
-                title="Invoice PDF Preview"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3">
-              <a
-                href={`/api/invoices/${selectedInvoice._id}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-              >
-                <Download className="w-4 h-4" />
-                Open in New Tab
-              </a>
-              <button
-                onClick={() => setPreviewModal(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#2D3A58] text-white rounded-lg hover:bg-[#0F172A]"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

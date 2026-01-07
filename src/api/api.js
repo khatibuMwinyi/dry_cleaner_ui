@@ -36,6 +36,7 @@ export const invoiceAPI = {
   getByCustomer: (customerId) => api.get(`/invoices/customer/${customerId}`),
   create: (data) => api.post('/invoices', data),
   markPaid: (id) => api.post(`/invoices/${id}/pay`),
+  send: (id) => api.post(`/invoices/${id}/send`),
 };
 
 // Expenses
