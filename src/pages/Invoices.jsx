@@ -10,12 +10,11 @@ import {
   Plus,
   CheckCircle,
   XCircle,
-  MessageCircle,
   CreditCard,
   Send,
   Eye,
   X,
-  Download,
+  
 } from "lucide-react";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
@@ -87,30 +86,29 @@ const Invoices = () => {
     }
   };
 
-  const handleSendWhatsappInvoice = async (id) => {
-    try {
-      await invoiceAPI.sendWhatsappInvoice(id);
-      toast.success("Invoice sent via WhatsApp successfully!");
-    } catch (error) {
-      toast.error(
-        "Error sending WhatsApp invoice: " +
-          (error.response?.data?.message || error.message)
-      );
-    }
-  };
+const handleSendWhatsappInvoice = async (id) => {
+  try {
+    toast.info("Preparing WhatsApp invoice...");
 
-  const handleEmailInvoice = async (id) => {
-    try {
-      toast.info("Sending invoice via email...");
-      await invoiceAPI.send(id);
-      toast.success("Invoice emailed to customer.");
-    } catch (error) {
-      toast.error(
-        "Error emailing invoice: " +
-          (error.response?.data?.message || error.message)
-      );
+    const res = await invoiceAPI.sendWhatsappInvoice(id);
+
+    const link = res.data?.whatsappLink;
+    if (!link) {
+      throw new Error("WhatsApp link not returned");
     }
-  };
+
+    window.open(link, "_blank", "noopener,noreferrer");
+  } catch (error) {
+    console.error("Error preparing WhatsApp invoice:", error.response?.data?.message ||
+        error.message);
+    toast.error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to prepare WhatsApp invoice"
+    );
+  }
+};
+
 
   // ---------------------- Form Helpers ----------------------
   const handleAddItem = () => {
@@ -258,7 +256,7 @@ const Invoices = () => {
                         <Eye className="w-5 h-5" />
                       </button>
 
-                                            <button
+                      <button
                         onClick={() => handleMarkPaid(invoice._id)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
                         title="Mark as Paid"
@@ -267,21 +265,11 @@ const Invoices = () => {
                       </button>
 
                       <button
-                        onClick={() =>
-                          handleSendPickupNotification(invoice._id)
-                        }
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="Send Pickup Notification"
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
-
-                      <button
                         onClick={() => handleSendWhatsappInvoice(invoice._id)}
                         className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
                         title="Send Invoice via WhatsApp"
                       >
-                        <MessageCircle className="w-5 h-5" />
+                        <Send className="w-5 h-5" />
                       </button>
                     </div>
                   </td>
@@ -292,7 +280,6 @@ const Invoices = () => {
         )}
       </div>
 
-      {/* Create Invoice Modal */}
       {/* Preview Invoice Modal */}
       {previewModal && selectedInvoice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -300,7 +287,9 @@ const Invoices = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-2xl font-bold mb-1">Invoice Preview</h2>
-                <p className="text-sm text-gray-600">#{selectedInvoice._id.slice(-6)}</p>
+                <p className="text-sm text-gray-600">
+                  #{selectedInvoice._id.slice(-6)}
+                </p>
               </div>
               <button
                 onClick={() => {
@@ -317,14 +306,30 @@ const Invoices = () => {
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-700">Customer</h3>
-                <p className="text-gray-900">{selectedInvoice.customerId?.name || 'N/A'}</p>
-                <p className="text-sm text-gray-600">{selectedInvoice.customerId?.phone}</p>
-                <p className="text-sm text-gray-600">{selectedInvoice.customerId?.address}</p>
+                <p className="text-gray-900">
+                  {selectedInvoice.customerId?.name || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedInvoice.customerId?.phone}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedInvoice.customerId?.address}
+                </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-gray-700">Dates</h3>
-                <p className="text-gray-900">Submitted: {selectedInvoice.createdAt ? new Date(selectedInvoice.createdAt).toLocaleDateString() : '-'}</p>
-                <p className="text-gray-900">Pickup: {selectedInvoice.pickupDate ? new Date(selectedInvoice.pickupDate).toLocaleDateString() : '-'}</p>
+                <p className="text-gray-900">
+                  Submitted:{" "}
+                  {selectedInvoice.createdAt
+                    ? new Date(selectedInvoice.createdAt).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p className="text-gray-900">
+                  Pickup:{" "}
+                  {selectedInvoice.pickupDate
+                    ? new Date(selectedInvoice.pickupDate).toLocaleDateString()
+                    : "-"}
+                </p>
               </div>
             </div>
 
@@ -341,8 +346,12 @@ const Invoices = () => {
                 </thead>
                 <tbody>
                   {selectedInvoice.items?.map((item, idx) => {
-                    const name = item.clothingTypeName || (item.clothingType?.name) || 'Item';
-                    const service = item.serviceName || (item.service?.name) || '';
+                    const name =
+                      item.clothingTypeName ||
+                      item.clothingType?.name ||
+                      "Item";
+                    const service =
+                      item.serviceName || item.service?.name || "";
                     const qty = item.quantity || 1;
                     const price = item.unitPrice || item.price || 0;
                     const line = item.totalPrice || price * qty;
@@ -351,8 +360,12 @@ const Invoices = () => {
                         <td className="py-2">{name}</td>
                         <td className="py-2">{service}</td>
                         <td className="py-2 text-right">{qty}</td>
-                        <td className="py-2 text-right">TSh {price.toLocaleString()}</td>
-                        <td className="py-2 text-right">TSh {line.toLocaleString()}</td>
+                        <td className="py-2 text-right">
+                          TSh {price.toLocaleString()}
+                        </td>
+                        <td className="py-2 text-right">
+                          TSh {line.toLocaleString()}
+                        </td>
                       </tr>
                     );
                   })}
@@ -363,15 +376,26 @@ const Invoices = () => {
                 <div className="w-64">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>TSh {(selectedInvoice.subtotal || selectedInvoice.total || 0).toLocaleString()}</span>
+                    <span>
+                      TSh{" "}
+                      {(
+                        selectedInvoice.subtotal ||
+                        selectedInvoice.total ||
+                        0
+                      ).toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Discount</span>
-                    <span>TSh {selectedInvoice.discount?.toLocaleString() || 0}</span>
+                    <span>
+                      TSh {selectedInvoice.discount?.toLocaleString() || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between font-medium mt-2">
                     <span>Total</span>
-                    <span>TSh {selectedInvoice.total?.toLocaleString() || 0}</span>
+                    <span>
+                      TSh {selectedInvoice.total?.toLocaleString() || 0}
+                    </span>
                   </div>
                 </div>
               </div>
