@@ -87,20 +87,50 @@ const Invoices = () => {
   };
 
 const handleSendWhatsappInvoice = async (id) => {
+  // 1. Open tab IMMEDIATELY (this is the critical fix)
+  const popup = window.open(
+    "about:blank",
+    "_blank"
+  );
+
+  if (!popup) {
+    toast.error("Popup blocked. Please allow popups for this site.");
+    return;
+  }
+
+  // Optional UX while waiting
+  popup.document.write(`
+    <html>
+      <head><title>Preparing Invoice</title></head>
+      <body style="font-family:sans-serif;padding:20px">
+        <h3>Preparing your WhatsApp invoice…</h3>
+        <p>Please wait.</p>
+      </body>
+    </html>
+  `);
+
   try {
     toast.info("Preparing WhatsApp invoice...");
 
     const res = await invoiceAPI.sendWhatsappInvoice(id);
-
     const link = res.data?.whatsappLink;
+
     if (!link) {
       throw new Error("WhatsApp link not returned");
     }
 
-    window.open(link, "_blank", "noopener,noreferrer");
+    // 2. Redirect already-open tab
+    popup.location.href = link;
+
+    console.log("WhatsApp link opened:", link);
   } catch (error) {
-    console.error("Error preparing WhatsApp invoice:", error.response?.data?.message ||
-        error.message);
+    popup.close();
+
+    console.error(
+      "Error preparing WhatsApp invoice:",
+      error.response?.data?.message || error.message
+    );
+
     toast.error(
       error.response?.data?.message ||
         error.message ||
@@ -108,6 +138,7 @@ const handleSendWhatsappInvoice = async (id) => {
     );
   }
 };
+
 
 
   // ---------------------- Form Helpers ----------------------
