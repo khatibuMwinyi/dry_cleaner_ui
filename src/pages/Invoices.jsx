@@ -14,7 +14,6 @@ import {
   Send,
   Eye,
   X,
-  
 } from "lucide-react";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
@@ -69,7 +68,7 @@ const Invoices = () => {
     } catch (error) {
       toast.error(
         "Error marking invoice as paid: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
@@ -81,65 +80,50 @@ const Invoices = () => {
     } catch (error) {
       toast.error(
         "Error sending pickup notification: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
 
-const handleSendWhatsappInvoice = async (id) => {
-  // 1. Open tab IMMEDIATELY (this is the critical fix)
-  const popup = window.open(
-    "about:blank",
-    "_blank"
-  );
+  const handleSendWhatsappInvoice = async (id) => {
+    // Open popup immediately (must be synchronous)
+    const popup = window.open("about:blank", "_blank");
 
-  if (!popup) {
-    toast.error("Popup blocked. Please allow popups for this site.");
-    return;
-  }
+    if (!popup) {
+      toast.error("Popup blocked. Please allow popups for this site.");
+      return;
+    }
 
-  // Optional UX while waiting
-  popup.document.write(`
+    popup.document.write(`
     <html>
-      <head><title>Preparing Invoice</title></head>
-      <body style="font-family:sans-serif;padding:20px">
-        <h3>Preparing your WhatsApp invoice…</h3>
-        <p>Please wait.</p>
+      <head>
+        <title>Opening WhatsApp…</title>
+        <meta charset="utf-8" />
+      </head>
+      <body style="font-family:sans-serif;padding:24px">
+        <h3>Opening WhatsApp…</h3>
+        <p>This will only take a moment.</p>
       </body>
     </html>
   `);
 
-  try {
-    toast.info("Preparing WhatsApp invoice...");
+    try {
+      const { data } = await invoiceAPI.sendWhatsappInvoice(id);
 
-    const res = await invoiceAPI.sendWhatsappInvoice(id);
-    const link = res.data?.whatsappLink;
+      if (!data?.whatsappLink) {
+        throw new Error("Invalid WhatsApp response");
+      }
 
-    if (!link) {
-      throw new Error("WhatsApp link not returned");
+      // Redirect immediately
+      popup.location.replace(data.whatsappLink);
+    } catch (err) {
+      popup.close();
+
+      toast.error(
+        err.response?.data?.message || "Failed to open WhatsApp invoice",
+      );
     }
-
-    // 2. Redirect already-open tab
-    popup.location.href = link;
-
-    console.log("WhatsApp link opened:", link);
-  } catch (error) {
-    popup.close();
-
-    console.error(
-      "Error preparing WhatsApp invoice:",
-      error.response?.data?.message || error.message
-    );
-
-    toast.error(
-      error.response?.data?.message ||
-        error.message ||
-        "Failed to prepare WhatsApp invoice"
-    );
-  }
-};
-
-
+  };
 
   // ---------------------- Form Helpers ----------------------
   const handleAddItem = () => {
@@ -182,7 +166,7 @@ const handleSendWhatsappInvoice = async (id) => {
     } catch (error) {
       toast.error(
         "Error creating invoice: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
