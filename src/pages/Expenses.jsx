@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { expenseAPI } from '../api/api';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import Loader from '../components/Loader';
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { expenseAPI } from "../api/api";
+import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import Loader from "../components/Loader";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
-  const [formData, setFormData] = useState({ category: '', amount: '', description: '', date: '' });
+  const [receipt, setReceipt] = useState(null);
+
+  const [formData, setFormData] = useState({
+    category: "",
+    amount: "",
+    description: "",
+    date: "",
+  });
 
   useEffect(() => {
     fetchExpenses();
@@ -18,10 +25,10 @@ const Expenses = () => {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await expenseAPI.getAll();
-      setExpenses(response.data);
-    } catch (error) {
-      console.error('Error fetching expenses:', error);
+      const { data } = await expenseAPI.getAll();
+      setExpenses(data);
+    } catch {
+      toast.error("Failed to load expenses");
     } finally {
       setLoading(false);
     }
@@ -29,18 +36,28 @@ const Expenses = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const data = new FormData();
+    data.append("category", formData.category);
+    data.append("amount", formData.amount);
+    data.append("description", formData.description);
+    data.append("date", formData.date);
+    if (receipt) data.append("receipt", receipt);
+
     try {
       if (editingExpense) {
-        await expenseAPI.update(editingExpense._id, formData);
+        await expenseAPI.update(editingExpense._id, data);
       } else {
-        await expenseAPI.create(formData);
+        await expenseAPI.create(data);
       }
+
       setShowModal(false);
       setEditingExpense(null);
-      setFormData({ category: '', amount: '', description: '', date: '' });
+      setReceipt(null);
+      setFormData({ category: "", amount: "", description: "", date: "" });
       fetchExpenses();
-    } catch (error) {
-      toast.error('Error saving expense: ' + (error.response?.data?.message || error.message));
+    } catch {
+      toast.error("Failed to save expense");
     }
   };
 
@@ -49,108 +66,93 @@ const Expenses = () => {
     setFormData({
       category: expense.category,
       amount: expense.amount,
-      description: expense.description || '',
-      date: expense.date ? new Date(expense.date).toISOString().split('T')[0] : '',
+      description: expense.description || "",
+      date: new Date(expense.date).toISOString().split("T")[0],
     });
+    setReceipt(null);
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
-      try {
-        await expenseAPI.delete(id);
-        fetchExpenses();
-      } catch (error) {
-        toast.error('Error deleting expense: ' + (error.response?.data?.message || error.message));
-      }
-    }
+    if (!window.confirm("Delete this expense?")) return;
+    await expenseAPI.delete(id);
+    fetchExpenses();
   };
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Expenses</h1>
-          <p className="text-gray-600 mt-1">Track and manage business expenses</p>
-        </div>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Expenses</h1>
         <button
           onClick={() => {
             setEditingExpense(null);
-            setFormData({ category: '', amount: '', description: '', date: '' });
+            setReceipt(null);
+            setFormData({
+              category: "",
+              amount: "",
+              description: "",
+              date: "",
+            });
             setShowModal(true);
           }}
-          className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex gap-2"
         >
-          <Plus className="w-5 h-5" />
-          Add Expense
+          <Plus size={18} /> Add Expense
         </button>
       </div>
 
-      {/* Summary Card */}
-      <div className="bg-[#F8F8F9] p-6 rounded-lg shadow">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600">Total Expenses</p>
-            <p className="text-xl font-bold text-red-600 mt-1">
-              TSh {totalExpenses.toLocaleString()}
-            </p>
-          </div>
-          <p className="text-sm text-gray-500">{expenses.length} expense(s)</p>
-        </div>
+      {/* Summary */}
+      <div className="bg-white p-6 rounded shadow">
+        <p className="text-gray-600">Total Expenses</p>
+        <p className="text-2xl font-bold text-red-600">
+          TSh {totalExpenses.toLocaleString()}
+        </p>
       </div>
 
-      {/* Expenses Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Table */}
+      <div className="bg-white rounded shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            <div className="text-gray-500 flex flex-col items-center justify-center">
-              <Loader />
-              Loading...
-            </div>
+          <div className="p-6 text-center">
+            <Loader />
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left">Date</th>
+                <th className="px-6 py-3 text-left">Category</th>
+                <th className="px-6 py-3 text-left">Amount</th>
+                <th className="px-6 py-3 text-left">Description</th>
+                <th className="px-6 py-3 text-left">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {expenses.map((expense) => (
-                <tr key={expense._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(expense.date).toLocaleDateString()}
+            <tbody>
+              {expenses.map((e) => (
+                <tr key={e._id} className="border-t">
+                  <td className="px-6 py-3">
+                    {new Date(e.date).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {expense.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    TSh {expense.amount.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {expense.description || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex gap-2">
+                  <td className="px-6 py-3">{e.category}</td>
+                  <td className="px-6 py-3">TSh {e.amount.toLocaleString()}</td>
+                  <td className="px-6 py-3">{e.description || "-"}</td>
+                  <td className="px-6 py-3 flex gap-2">
+                    {e.receiptUrl && (
                       <button
-                        onClick={() => handleEdit(expense)}
-                        className="text-blue-600 hover:text-blue-800"
+                        onClick={() => window.open(e.receiptUrl, "_blank")}
+                        title="View receipt"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Eye size={16} />
                       </button>
-                      <button
-                        onClick={() => handleDelete(expense._id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    )}
+                    <button onClick={() => handleEdit(e)}>
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => handleDelete(e._id)}>
+                      <Trash2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -159,77 +161,79 @@ const Expenses = () => {
         )}
       </div>
 
-      {/* Add/Edit Expense Modal */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4">
-              {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white p-6 rounded w-full max-w-md space-y-4"
+          >
+            <h2 className="text-xl font-bold">
+              {editingExpense ? "Edit Expense" : "Add Expense"}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                  placeholder="e.g., Rent, Utilities, Supplies"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount (TSh) *</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                  rows="3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#2D3A58] hover:bg-[#0F172A] text-white py-2 rounded-lg"
-                >
-                  {editingExpense ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingExpense(null);
-                    setFormData({ category: '', amount: '', description: '', date: '' });
-                  }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
+
+            <input
+              required
+              placeholder="Category"
+              value={formData.category}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
+              className="w-full border p-2 rounded"
+            />
+
+            <input
+              type="number"
+              required
+              placeholder="Amount"
+              value={formData.amount}
+              onChange={(e) =>
+                setFormData({ ...formData, amount: e.target.value })
+              }
+              className="w-full border p-2 rounded"
+            />
+
+            <textarea
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="w-full border p-2 rounded"
+            />
+
+            <input
+              type="date"
+              required
+              value={formData.date}
+              onChange={(e) =>
+                setFormData({ ...formData, date: e.target.value })
+              }
+              className="w-full border p-2 rounded"
+            />
+
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              onChange={(e) => setReceipt(e.target.files[0])}
+            />
+
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="flex-1 bg-[#2D3A58] text-white py-2 rounded"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="flex-1 bg-gray-200 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
@@ -237,7 +241,3 @@ const Expenses = () => {
 };
 
 export default Expenses;
-
-
-
-

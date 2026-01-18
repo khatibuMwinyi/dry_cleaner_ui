@@ -5,9 +5,6 @@ const API_BASE_URL =
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Customers
@@ -44,8 +41,8 @@ export const invoiceAPI = {
 export const expenseAPI = {
   getAll: (params) => api.get("/expenses", { params }),
   getById: (id) => api.get(`/expenses/${id}`),
-  create: (data) => api.post("/expenses", data),
-  update: (id, data) => api.put(`/expenses/${id}`, data),
+  create: (formData) => api.post("/expenses", formData), // FormData → multer
+  update: (id, formData) => api.put(`/expenses/${id}`, formData),
   delete: (id) => api.delete(`/expenses/${id}`),
 };
 
