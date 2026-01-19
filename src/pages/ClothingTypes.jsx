@@ -59,7 +59,7 @@ const ClothingTypes = () => {
     } catch (error) {
       toast.error(
         "Error saving clothing type: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
@@ -87,7 +87,7 @@ const ClothingTypes = () => {
     } catch (error) {
       toast.error(
         "Error deleting clothing type: " +
-          (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message),
       );
     }
   };
@@ -191,7 +191,7 @@ const ClothingTypes = () => {
                             Object.entries(pricingMap).map(
                               ([serviceId, price]) => {
                                 const service = services.find(
-                                  (s) => s._id === serviceId
+                                  (s) => s._id === serviceId,
                                 );
                                 return (
                                   <div key={serviceId} className="text-xs">
@@ -199,7 +199,7 @@ const ClothingTypes = () => {
                                     {price?.toLocaleString() || "0"}
                                   </div>
                                 );
-                              }
+                              },
                             )
                           ) : (
                             <span className="text-gray-400">
@@ -306,7 +306,7 @@ const ClothingTypes = () => {
                               onChange={(e) =>
                                 handleServicePriceChange(
                                   service._id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="w-24 px-2 py-1 border border-gray-300 rounded text-sm outline-none border-b-2"

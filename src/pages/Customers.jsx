@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { customerAPI, invoiceAPI } from "../api/api";
+import { customerAPI } from "../api/api";
 import { Plus, Search } from "lucide-react";
 import Loader from "../components/Loader";
 
