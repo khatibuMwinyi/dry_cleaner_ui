@@ -1,93 +1,148 @@
-import { useState, useEffect } from 'react';
-import { inventoryAPI } from '../api/api';
-import { Plus, Edit, Trash2, AlertTriangle } from 'lucide-react';
-import Loader from '../components/Loader';
+import { useState, useEffect, useMemo } from "react";
+import { toast } from "react-toastify";
+import { inventoryAPI } from "../api/api";
+import { Plus, Edit, Trash2, AlertTriangle } from "lucide-react";
+import Loader from "../components/Loader";
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
-  const [lowStockItems, setLowStockItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    quantity: '', 
-    unit: '', 
-    reorderLevel: '' 
+
+  const [formData, setFormData] = useState({
+    name: "",
+    quantity: "",
+    unit: "",
+    reorderLevel: "",
   });
 
-  useEffect(() => {
-    fetchInventory();
-    fetchLowStock();
-  }, []);
+  /* ----------------------------- helpers ----------------------------- */
+
+  const isLowStock = (item) =>
+    typeof item.reorderLevel === "number" && item.quantity <= item.reorderLevel;
+
+  const lowStockItems = useMemo(
+    () => inventory.filter(isLowStock),
+    [inventory],
+  );
+
+  /* ------------------------------ fetch ------------------------------- */
 
   const fetchInventory = async () => {
     try {
       setLoading(true);
-      const response = await inventoryAPI.getAll();
-      setInventory(response.data);
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
+      const res = await inventoryAPI.getAll();
+      setInventory(res.data);
+    } catch (err) {
+      console.error("Error fetching inventory:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchLowStock = async () => {
-    try {
-      const response = await inventoryAPI.getLowStock();
-      setLowStockItems(response.data);
-    } catch (error) {
-      console.error('Error fetching low stock items:', error);
-    }
-  };
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  /* ------------------------------ submit ------------------------------ */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const payload = {
+      name: formData.name.trim(),
+      quantity: Number(formData.quantity),
+      unit: formData.unit?.trim() || undefined,
+      reorderLevel:
+        formData.reorderLevel !== ""
+          ? Number(formData.reorderLevel)
+          : undefined,
+    };
+
     try {
-      const data = {
-        ...formData,
-        quantity: parseFloat(formData.quantity) || 0,
-        reorderLevel: formData.reorderLevel ? parseFloat(formData.reorderLevel) : undefined,
-      };
-      
       if (editingItem) {
-        await inventoryAPI.update(editingItem._id, data);
+        const res = await inventoryAPI.update(editingItem._id, payload);
+        setInventory((prev) =>
+          prev.map((item) => (item._id === editingItem._id ? res.data : item)),
+        );
       } else {
-        await inventoryAPI.create(data);
+        const res = await inventoryAPI.create(payload);
+        setInventory((prev) => [res.data, ...prev]);
       }
-      setShowModal(false);
-      setEditingItem(null);
-      setFormData({ name: '', quantity: '', unit: '', reorderLevel: '' });
-      fetchInventory();
-      fetchLowStock();
-    } catch (error) {
-      alert('Error saving inventory item: ' + (error.response?.data?.message || error.message));
+
+      resetModal();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to save inventory item");
     }
   };
+
+  /* ------------------------------ edit ------------------------------- */
 
   const handleEdit = (item) => {
     setEditingItem(item);
     setFormData({
       name: item.name,
       quantity: item.quantity,
-      unit: item.unit || '',
-      reorderLevel: item.reorderLevel || '',
+      unit: item.unit || "",
+      reorderLevel: item.reorderLevel ?? "",
     });
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this inventory item?')) {
-      try {
-        await inventoryAPI.delete(id);
-        fetchInventory();
-        fetchLowStock();
-      } catch (error) {
-        alert('Error deleting inventory item: ' + (error.response?.data?.message || error.message));
-      }
-    }
+  /* ------------------------------ delete ------------------------------ */
+
+  const handleDelete = (id) => {
+    toast(
+      ({ closeToast }) => (
+        <div className="space-y-3">
+          <p className="font-medium text-gray-800">
+            Are you sure you want to delete this inventory item?
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={closeToast}
+              className="px-3 py-1 text-sm bg-gray-200 rounded"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await inventoryAPI.delete(id);
+                  setInventory((prev) =>
+                    prev.filter((item) => item._id !== id),
+                  );
+                  toast.success("Inventory item deleted");
+                } catch (err) {
+                  toast.error(
+                    err.response?.data?.message ||
+                      "Failed to delete inventory item",
+                  );
+                } finally {
+                  closeToast();
+                }
+              }}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { autoClose: false },
+    );
   };
+
+  /* ------------------------------ modal ------------------------------- */
+
+  const resetModal = () => {
+    setShowModal(false);
+    setEditingItem(null);
+    setFormData({ name: "", quantity: "", unit: "", reorderLevel: "" });
+  };
+
+  /* ------------------------------- UI -------------------------------- */
 
   return (
     <div className="space-y-6">
@@ -95,15 +150,16 @@ const Inventory = () => {
       <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Inventory</h1>
-          <p className="text-gray-600 mt-1">Track and manage resources and supplies</p>
+          <p className="text-gray-600 mt-1">
+            Track and manage resources and supplies
+          </p>
         </div>
         <button
           onClick={() => {
-            setEditingItem(null);
-            setFormData({ name: '', quantity: '', unit: '', reorderLevel: '' });
+            resetModal();
             setShowModal(true);
           }}
-          className=" text-white px-4 py-2 rounded-lg bg-[#2D3A58] hover:bg-[#0F172A] flex items-center gap-2"
+          className="text-white px-4 py-2 rounded-lg bg-[#2D3A58] hover:bg-[#0F172A] flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Add Item
@@ -123,151 +179,158 @@ const Inventory = () => {
           <div className="mt-3 space-y-1">
             {lowStockItems.map((item) => (
               <div key={item._id} className="text-sm text-yellow-700">
-                • {item.name}: {item.quantity} {item.unit || ''} (Reorder at: {item.reorderLevel} {item.unit || ''})
+                • {item.name}: {item.quantity} {item.unit || ""}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Inventory Table */}
+      {/* Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            <div className="text-gray-500 flex flex-col items-center justify-center">
-              <Loader />
-              Loading...
-            </div>
+          <div className="p-8 flex justify-center">
+            <Loader />
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Level</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Item
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Qty
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Unit
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Reorder
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {inventory.map((item) => {
-                const isLowStock = item.reorderLevel && item.quantity <= item.reorderLevel;
-                return (
-                  <tr key={item._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.quantity}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.unit || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.reorderLevel || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {isLowStock ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Low Stock
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          In Stock
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item._id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+            <tbody className="divide-y divide-gray-200">
+              {inventory.map((item) => (
+                <tr key={item._id}>
+                  <td className="px-6 py-4 font-medium">{item.name}</td>
+                  <td className="px-6 py-4">{item.quantity}</td>
+                  <td className="px-6 py-4">{item.unit || "-"}</td>
+                  <td className="px-6 py-4">{item.reorderLevel ?? "-"}</td>
+                  <td className="px-6 py-4">
+                    {isLowStock(item) ? (
+                      <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                        Low Stock
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        In Stock
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 flex gap-2">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="text-blue-600"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      className="text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Add/Edit Inventory Modal */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-4">
-              {editingItem ? 'Edit Inventory Item' : 'Add New Inventory Item'}
+            <h2 className="text-xl font-bold mb-4">
+              {editingItem ? "Edit Item" : "Add Item"}
             </h2>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Item Name *
+                </label>
                 <input
-                  type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full border p-2 rounded"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity *
+                </label>
                 <input
                   type="number"
-                  required
                   min="0"
+                  required
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, quantity: e.target.value })
+                  }
+                  className="w-full border p-2 rounded"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Unit
+                </label>
                 <input
-                  type="text"
                   value={formData.unit}
-                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                  placeholder="e.g., kg, liters, pieces"
+                  onChange={(e) =>
+                    setFormData({ ...formData, unit: e.target.value })
+                  }
+                  className="w-full border p-2 rounded"
+                  placeholder="kg, liters, pieces"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reorder Level
+                </label>
                 <input
                   type="number"
                   min="0"
                   value={formData.reorderLevel}
-                  onChange={(e) => setFormData({ ...formData, reorderLevel: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
-                  placeholder="Alert when quantity reaches this level"
+                  onChange={(e) =>
+                    setFormData({ ...formData, reorderLevel: e.target.value })
+                  }
+                  className="w-full border p-2 rounded"
                 />
               </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#2D3A58] text-white py-2 rounded-lg hover:bg-[#0F172A]"
-                >
-                  {editingItem ? 'Update' : 'Create'}
+
+              <div className="flex gap-2 pt-3">
+                <button className="flex-1 bg-[#2D3A58] text-white py-2 rounded">
+                  Save
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setEditingItem(null);
-                    setFormData({ name: '', quantity: '', unit: '', reorderLevel: '' });
-                  }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
+                  onClick={resetModal}
+                  className="flex-1 bg-gray-200 py-2 rounded"
                 >
                   Cancel
                 </button>
@@ -281,10 +344,3 @@ const Inventory = () => {
 };
 
 export default Inventory;
-
-
-
-
-
-
-
