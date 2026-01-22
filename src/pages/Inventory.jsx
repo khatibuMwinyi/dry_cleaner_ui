@@ -9,6 +9,7 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [lowStock, setLowStock] = useState([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,8 +42,18 @@ const Inventory = () => {
     }
   };
 
+  const fetchLowStock = async () => {
+    try {
+      const res = await inventoryAPI.getLowStock();
+      setLowStock(res.data);
+    } catch (err) {
+      console.error("Failed to fetch low stock items", err);
+    }
+  };
+
   useEffect(() => {
     fetchInventory();
+    fetchLowStock();
   }, []);
 
   /* ------------------------------ submit ------------------------------ */
