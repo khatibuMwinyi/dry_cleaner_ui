@@ -22,14 +22,6 @@ export const serviceAPI = {
   delete: (id) => api.delete(`/services/${id}`),
 };
 
-// Clothing Types
-export const clothingTypeAPI = {
-  getAll: () => api.get("/clothing-types"),
-  create: (data) => api.post("/clothing-types", data),
-  update: (id, data) => api.put(`/clothing-types/${id}`, data),
-  delete: (id) => api.delete(`/clothing-types/${id}`),
-};
-
 // Invoices
 export const invoiceAPI = {
   getAll: (params) => api.get("/invoices", { params }),

@@ -4,7 +4,6 @@ import {
   invoiceAPI,
   customerAPI,
   serviceAPI,
-  clothingTypeAPI,
 } from "../api/api";
 import {
   Plus,
@@ -22,14 +21,13 @@ const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [services, setServices] = useState([]);
-  const [clothingTypes, setClothingTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [previewModal, setPreviewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [formData, setFormData] = useState({
     customerId: "",
-    items: [{ clothingTypeId: "", serviceId: "", quantity: 1 }],
+    items: [{ serviceId: "", quantity: 1 }],
     discount: 0,
     pickupDate: "",
   });
@@ -41,17 +39,15 @@ const Invoices = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [invoicesRes, customersRes, servicesRes, clothingTypesRes] =
+      const [invoicesRes, customersRes, servicesRes] =
         await Promise.all([
           invoiceAPI.getAll(),
           customerAPI.getAll(),
           serviceAPI.getAll(),
-          clothingTypeAPI.getAll(),
         ]);
       setInvoices(invoicesRes.data);
       setCustomers(customersRes.data);
       setServices(servicesRes.data);
-      setClothingTypes(clothingTypesRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -131,7 +127,7 @@ const Invoices = () => {
       ...formData,
       items: [
         ...formData.items,
-        { clothingTypeId: "", serviceId: "", quantity: 1 },
+        { serviceId: "", quantity: 1 },
       ],
     });
   };
@@ -157,7 +153,7 @@ const Invoices = () => {
       setShowModal(false);
       setFormData({
         customerId: "",
-        items: [{ clothingTypeId: "", serviceId: "", quantity: 1 }],
+        items: [{ serviceId: "", quantity: 1 }],
         discount: 0,
         pickupDate: "",
       });
@@ -352,7 +348,6 @@ const Invoices = () => {
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="text-gray-600">
-                    <th className="pb-2">Item</th>
                     <th className="pb-2">Service</th>
                     <th className="pb-2 text-right">Qty</th>
                     <th className="pb-2 text-right">Price</th>
@@ -361,18 +356,13 @@ const Invoices = () => {
                 </thead>
                 <tbody>
                   {selectedInvoice.items?.map((item, idx) => {
-                    const name =
-                      item.clothingTypeName ||
-                      item.clothingType?.name ||
-                      "Item";
                     const service =
-                      item.serviceName || item.service?.name || "";
+                      item.serviceName || item.service?.name || "Service";
                     const qty = item.quantity || 1;
                     const price = item.unitPrice || item.price || 0;
                     const line = item.totalPrice || price * qty;
                     return (
                       <tr key={idx} className="border-t">
-                        <td className="py-2">{name}</td>
                         <td className="py-2">{service}</td>
                         <td className="py-2 text-right">{qty}</td>
                         <td className="py-2 text-right">
@@ -418,12 +408,6 @@ const Invoices = () => {
 
             <div className="mt-6 flex gap-3 justify-end">
               <button
-                onClick={() => handleEmailInvoice(selectedInvoice._id)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-              >
-                Email PDF
-              </button>
-              <button
                 onClick={() => {
                   setPreviewModal(false);
                   setSelectedInvoice(null);
@@ -467,16 +451,6 @@ const Invoices = () => {
                 </label>
                 {formData.items.map((item, index) => (
                   <div key={index} className="flex gap-2 mb-2">
-                    <Dropdown
-                      required
-                      value={item.clothingTypeId}
-                      onChange={(value) =>
-                        handleItemChange(index, "clothingTypeId", value)
-                      }
-                      options={clothingTypes}
-                      placeholder="Clothing Type"
-                      className="flex-1"
-                    />
                     <Dropdown
                       required
                       value={item.serviceId}
@@ -570,7 +544,7 @@ const Invoices = () => {
                     setFormData({
                       customerId: "",
                       items: [
-                        { clothingTypeId: "", serviceId: "", quantity: 1 },
+                        { serviceId: "", quantity: 1 },
                       ],
                       discount: 0,
                       pickupDate: "",

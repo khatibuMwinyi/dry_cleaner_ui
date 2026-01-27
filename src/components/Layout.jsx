@@ -6,7 +6,6 @@ import {
   Settings,
   DollarSign,
   Package,
-  Shirt,
 } from "lucide-react";
 
 const Layout = ({ children }) => {
@@ -17,7 +16,6 @@ const Layout = ({ children }) => {
     { path: "/customers", icon: Users, label: "Customers" },
     { path: "/invoices", icon: FileText, label: "Invoices" },
     { path: "/services", icon: Settings, label: "Services" },
-    { path: "/clothing-types", icon: Shirt, label: "Clothing Types" },
     { path: "/expenses", icon: DollarSign, label: "Expenses" },
     { path: "/inventory", icon: Package, label: "Inventory" },
   ];
