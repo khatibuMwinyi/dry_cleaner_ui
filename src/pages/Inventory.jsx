@@ -15,6 +15,7 @@ const Inventory = () => {
     name: "",
     quantity: "",
     unit: "",
+    costPerUnit: "",
     reorderLevel: "",
   });
 
@@ -65,6 +66,8 @@ const Inventory = () => {
       name: formData.name.trim(),
       quantity: Number(formData.quantity),
       unit: formData.unit?.trim() || undefined,
+      costPerUnit:
+        formData.costPerUnit !== "" ? Number(formData.costPerUnit) : undefined,
       reorderLevel:
         formData.reorderLevel !== ""
           ? Number(formData.reorderLevel)
@@ -96,6 +99,7 @@ const Inventory = () => {
       name: item.name,
       quantity: item.quantity,
       unit: item.unit || "",
+      costPerUnit: item.costPerUnit ?? 0,
       reorderLevel: item.reorderLevel ?? "",
     });
     setShowModal(true);
@@ -150,7 +154,7 @@ const Inventory = () => {
   const resetModal = () => {
     setShowModal(false);
     setEditingItem(null);
-    setFormData({ name: "", quantity: "", unit: "", reorderLevel: "" });
+    setFormData({ name: "", quantity: "", unit: "", costPerUnit: "", reorderLevel: "" });
   };
 
   /* ------------------------------- UI -------------------------------- */
@@ -190,7 +194,7 @@ const Inventory = () => {
           <div className="mt-3 space-y-1">
             {lowStockItems.map((item) => (
               <div key={item._id} className="text-sm text-yellow-700">
-                • {item.name}: {item.quantity} {item.unit || ""}
+                • {item.name}: {Number(item.quantity || 0).toFixed(3)} {item.unit || ""}
               </div>
             ))}
           </div>
@@ -217,6 +221,9 @@ const Inventory = () => {
                   Unit
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Cost/Unit
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Reorder
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -231,8 +238,11 @@ const Inventory = () => {
               {inventory.map((item) => (
                 <tr key={item._id}>
                   <td className="px-6 py-4 font-medium">{item.name}</td>
-                  <td className="px-6 py-4">{item.quantity}</td>
+                  <td className="px-6 py-4">{Number(item.quantity || 0).toFixed(3)}</td>
                   <td className="px-6 py-4">{item.unit || "-"}</td>
+                  <td className="px-6 py-4">
+                    {Number(item.costPerUnit || 0).toLocaleString()}
+                  </td>
                   <td className="px-6 py-4">{item.reorderLevel ?? "-"}</td>
                   <td className="px-6 py-4">
                     {isLowStock(item) ? (
@@ -316,6 +326,22 @@ const Inventory = () => {
                   }
                   className="w-full border p-2 rounded"
                   placeholder="kg, liters, pieces"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cost Per Unit (TZS)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.001"
+                  value={formData.costPerUnit}
+                  onChange={(e) =>
+                    setFormData({ ...formData, costPerUnit: e.target.value })
+                  }
+                  className="w-full border p-2 rounded"
                 />
               </div>
 
