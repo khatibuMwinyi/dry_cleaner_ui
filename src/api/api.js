@@ -7,6 +7,22 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+// Attach token automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Auth
+export const authAPI = {
+  login: (data) => api.post("/auth/login", data),
+  registerAdmin: (data) => api.post("/auth/register-admin", data),
+};
+
 // Customers
 export const customerAPI = {
   getAll: () => api.get("/customers"),
@@ -29,6 +45,7 @@ export const invoiceAPI = {
   getByCustomer: (customerId) => api.get(`/invoices/customer/${customerId}`),
   create: (data) => api.post("/invoices", data),
   markPaid: (id) => api.post(`/invoices/${id}/pay`),
+  executeServices: (id) => api.post(`/invoices/${id}/execute`),
   sendWhatsappInvoice: (id) => api.post(`/invoices/${id}/send-whatsapp`),
 };
 

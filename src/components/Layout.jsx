@@ -7,17 +7,28 @@ import {
   DollarSign,
   Package,
 } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const menuItems = [
     { path: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/customers", icon: Users, label: "Customers" },
-    { path: "/invoices", icon: FileText, label: "Invoices" },
+    ...(user?.role === "ADMIN"
+      ? [
+          { path: "/customers", icon: Users, label: "Customers" },
+          { path: "/invoices", icon: FileText, label: "Invoices" },
+        ]
+      : []),
     { path: "/services", icon: Settings, label: "Services" },
+    ...(user?.role === "MODERATOR"
+      ? [{ path: "/inventory", icon: Package, label: "Inventory" }]
+      : []),
     { path: "/expenses", icon: DollarSign, label: "Expenses" },
-    { path: "/inventory", icon: Package, label: "Inventory" },
+    ...(user?.role === "MODERATOR"
+      ? [{ path: "/register-admin", icon: Users, label: "Register Admin" }]
+      : []),
   ];
 
   return (
@@ -32,7 +43,8 @@ const Layout = ({ children }) => {
             <p className="text-sm text-gray-500 mt-1">Dry Cleaner Dashboard</p>
           </div>
           <hr />
-          <nav className="mt-1">
+          <nav className="mt-1 flex flex-col h-[calc(100vh-112px)]">
+            <div className="flex-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -49,6 +61,21 @@ const Layout = ({ children }) => {
                 </Link>
               );
             })}
+            </div>
+
+            <div className="p-4 border-t">
+              <div className="text-xs text-gray-500">Logged in as</div>
+              <div className="text-sm font-medium text-[#0F172A] truncate">
+                {user?.email || "-"}
+              </div>
+              <div className="text-xs text-gray-600">{user?.role || ""}</div>
+              <button
+                onClick={logout}
+                className="mt-3 w-full text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg"
+              >
+                Logout
+              </button>
+            </div>
           </nav>
         </aside>
 
