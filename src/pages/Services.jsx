@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { Plus, Play, Trash2 } from "lucide-react";
+import { Plus, Play, Trash2, Edit } from "lucide-react";
 import { serviceAPI, inventoryAPI } from "../api/api";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
+import { useAuth } from "../auth/AuthContext";
 
 const Services = () => {
+  const { user } = useAuth();
   const [services, setServices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
   const [form, setForm] = useState({
     name: "",
     basePrice: "",
@@ -59,22 +62,53 @@ const Services = () => {
     }
 
     try {
-      await serviceAPI.create({
-        name: form.name.trim(),
-        basePrice: Number(form.basePrice),
-        consumables: form.consumables.map((c) => ({
-          inventory: c.inventory,
-          quantity: Number(c.quantity),
-        })),
-      });
-
-      toast.success("Service created");
+      if (editingService) {
+        await serviceAPI.update(editingService._id, {
+          name: form.name.trim(),
+          basePrice: Number(form.basePrice),
+          consumables: form.consumables.map((c) => ({
+            inventory: c.inventory,
+            quantity: Number(c.quantity),
+          })),
+        });
+        toast.success("Service updated");
+      } else {
+        await serviceAPI.create({
+          name: form.name.trim(),
+          basePrice: Number(form.basePrice),
+          consumables: form.consumables.map((c) => ({
+            inventory: c.inventory,
+            quantity: Number(c.quantity),
+          })),
+        });
+        toast.success("Service created");
+      }
       setShowModal(false);
+      setEditingService(null);
       setForm({ name: "", basePrice: "", consumables: [] });
       loadData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create service");
+      toast.error(err.response?.data?.message || "Failed to save service");
     }
+  };
+
+  const handleEdit = (service) => {
+    setEditingService(service);
+    setForm({
+      name: service.name,
+      basePrice: service.basePrice,
+      consumables: service.consumables.map((c) => ({
+        inventory: c.inventory?._id || c.inventory,
+        quantity: c.quantity,
+      })),
+    });
+    setShowModal(true);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+    setEditingService(null);
+    setForm({ name: "", basePrice: "", consumables: [] });
   };
 
   const executeService = async (id) => {
@@ -82,7 +116,7 @@ const Services = () => {
     if (!qty) return;
 
     try {
-      await serviceAPI.execute(id, { quantity: Number(qty) });
+      await serviceAPI.execute(id, { quantity: parseFloat(qty) });
       toast.success("Service executed");
       loadData();
     } catch (err) {
@@ -120,63 +154,89 @@ const Services = () => {
     );
   };
 
-  if (loading) return <Loader />;
+  const canManageServices = user?.role === "MODERATOR";
+  const canExecute = user?.role === "ADMIN";
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Services</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus size={18} /> Add Service
-        </button>
+        {canManageServices && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <Plus size={18} /> Add Service
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs uppercase">Price</th>
-              <th className="px-6 py-3 text-left text-xs uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {services.map((service) => (
-              <tr key={service._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">{service.name}</td>
-                <td className="px-6 py-4">
-                  {service.basePrice?.toLocaleString() ?? "-"}
-                </td>
-                <td className="px-6 py-4 flex gap-2">
-                  <button
-                    onClick={() => executeService(service._id)}
-                    className="text-green-600"
-                  >
-                    <Play size={18} />
-                  </button>
-                  <button
-                    onClick={() => deleteService(service._id)}
-                    className="text-red-600"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        {loading ? (
+          <div className="p-8 flex items-center justify-center text-gray-500">
+            <Loader />
+          </div>
+        ) : (
+          <table className="min-w-full divide-y">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs uppercase">Name</th>
+                <th className="px-6 py-3 text-left text-xs uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs uppercase">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {services.map((service) => (
+                <tr key={service._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">{service.name}</td>
+                  <td className="px-6 py-4">
+                    {service.basePrice?.toLocaleString() ?? "-"}
+                  </td>
+                  <td className="px-6 py-4 flex gap-2">
+                    {canExecute && (
+                      <button
+                        onClick={() => executeService(service._id)}
+                        className="text-green-600 hover:text-green-800"
+                        title="Execute Service"
+                      >
+                        <Play size={18} />
+                      </button>
+                    )}
+                    {canManageServices && (
+                      <>
+                        <button
+                          onClick={() => handleEdit(service)}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Edit Service"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => deleteService(service._id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Delete Service"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {showModal && (
+      {showModal && canManageServices && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <form
             onSubmit={handleCreate}
             className="bg-white p-6 rounded-lg w-full max-w-lg space-y-4"
           >
-            <h2 className="text-xl font-bold">Create Service</h2>
+            <h2 className="text-xl font-bold">
+              {editingService ? "Edit Service" : "Create Service"}
+            </h2>
 
             <input
               placeholder="Service name"
@@ -209,6 +269,7 @@ const Services = () => {
                     onChange={(e) =>
                       updateConsumable(i, "quantity", e.target.value)
                     }
+                    step="0.001"
                     className="w-24 border px-2 py-1 rounded"
                   />
                 </div>
@@ -224,11 +285,11 @@ const Services = () => {
 
             <div className="flex gap-2">
               <button className="flex-1 bg-[#2D3A58] text-white py-2 rounded">
-                Save
+                {editingService ? "Update" : "Create"}
               </button>
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={handleCancel}
                 className="flex-1 bg-gray-200 py-2 rounded"
               >
                 Cancel

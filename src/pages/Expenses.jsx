@@ -3,8 +3,10 @@ import { toast } from "react-toastify";
 import { Plus, Trash2, Paperclip } from "lucide-react";
 import { expenseAPI } from "../api/api";
 import Loader from "../components/Loader";
+import { useAuth } from "../auth/AuthContext";
 
 const Expenses = () => {
+  const { user } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -143,7 +145,7 @@ const Expenses = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Expenses</h1>
           <p className="text-gray-600 mt-1">
-            Track and manage business expenses
+            Fuata na simamia gharama za biashara
           </p>
         </div>
         <button
@@ -161,7 +163,7 @@ const Expenses = () => {
             <Loader />
           </div>
         ) : expenses.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No expenses found</div>
+          <div className="p-8 text-center text-gray-500">Hakuna gharama</div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -170,7 +172,13 @@ const Expenses = () => {
                   Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Description
+                  Huduma
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Matumizi ya Ghala
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Maelezo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase">
                   Amount (TSh)
@@ -191,6 +199,24 @@ const Expenses = () => {
                 <tr key={expense._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium">
                     {expense.category}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {expense.serviceExecution?.service?.name || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {expense.inventoryUsage && expense.inventoryUsage.length > 0 ? (
+                      <div className="space-y-1">
+                        {expense.inventoryUsage.map((usage, idx) => (
+                          <div key={idx} className="text-xs">
+                            {usage.inventory?.name || "Unknown"}:{" "}
+                            {Number(usage.quantityUsed || 0).toFixed(3)}{" "}
+                            {usage.inventory?.unit || ""}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {expense.description || "-"}
@@ -216,12 +242,16 @@ const Expenses = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => handleDelete(expense._id)}
-                      className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                    >
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </button>
+                    {user?.role === "MODERATOR" ? (
+                      <button
+                        onClick={() => handleDelete(expense._id)}
+                        className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -238,7 +268,7 @@ const Expenses = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Category *
+                  Aina ya Gharama *
                 </label>
                 <input
                   type="text"
@@ -253,7 +283,7 @@ const Expenses = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Amount (TSh) *
+                  Kiasi (TZS) *
                 </label>
                 <input
                   type="number"
@@ -269,7 +299,7 @@ const Expenses = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Description
+                  Maelezo (kwa Kiswahili)
                 </label>
                 <input
                   type="text"
@@ -296,7 +326,7 @@ const Expenses = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Receipt (optional)
+                  Risiti (si lazima)
                 </label>
                 <input
                   type="file"
