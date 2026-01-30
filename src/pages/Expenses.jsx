@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Plus, Trash2, Paperclip } from "lucide-react";
-import { expenseAPI } from "../api/api";
+import { Plus, Trash2, Paperclip, Eye, X } from "lucide-react";
+import { expenseAPI, invoiceAPI } from "../api/api";
 import Loader from "../components/Loader";
 import { useAuth } from "../auth/AuthContext";
+import { formatCurrency, formatQuantity } from "../utils/formatNumber";
 
 const Expenses = () => {
   const { user } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const [formData, setFormData] = useState({
     category: "",
@@ -138,6 +141,17 @@ const Expenses = () => {
     });
   };
 
+  const handlePreviewInvoice = async (invoiceId) => {
+    try {
+      const { data } = await invoiceAPI.getPreview(invoiceId);
+      setSelectedInvoice(data);
+      setShowInvoiceModal(true);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load invoice details");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -159,7 +173,7 @@ const Expenses = () => {
       {/* Expenses Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 flex items-center justify-center text-gray-500">
             <Loader />
           </div>
         ) : expenses.length === 0 ? (
@@ -204,13 +218,16 @@ const Expenses = () => {
                     {expense.serviceExecution?.service?.name || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {expense.inventoryUsage && expense.inventoryUsage.length > 0 ? (
+                    {expense.inventoryUsage &&
+                    expense.inventoryUsage.length > 0 ? (
                       <div className="space-y-1">
                         {expense.inventoryUsage.map((usage, idx) => (
                           <div key={idx} className="text-xs">
                             {usage.inventory?.name || "Unknown"}:{" "}
-                            {Number(usage.quantityUsed || 0).toFixed(3)}{" "}
-                            {usage.inventory?.unit || ""}
+                            {formatQuantity(
+                              usage.quantityUsed || 0,
+                              usage.inventory?.unit || "",
+                            )}
                           </div>
                         ))}
                       </div>
@@ -222,7 +239,7 @@ const Expenses = () => {
                     {expense.description || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {expense.amount.toLocaleString()}
+                    {formatCurrency(expense.amount)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(expense.date).toLocaleDateString()}
@@ -241,17 +258,28 @@ const Expenses = () => {
                       "-"
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm">
-                    {user?.role === "MODERATOR" ? (
-                      <button
-                        onClick={() => handleDelete(expense._id)}
-                        className="text-red-600 hover:text-red-800 flex items-center gap-1"
-                      >
-                        <Trash2 className="w-4 h-4" /> Delete
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm">-</span>
-                    )}
+<td className="px-6 py-4 text-sm">
+                    <div className="flex gap-2">
+                      {expense.invoice && user?.role === "MODERATOR" && (
+                        <button
+                          onClick={() => handlePreviewInvoice(expense.invoice._id)}
+                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          title="Preview Invoice"
+                        >
+                          <Eye className="w-4 h-4" /> Invoice
+                        </button>
+                      )}
+                      {user?.role === "MODERATOR" ? (
+                        <button
+                          onClick={() => handleDelete(expense._id)}
+                          className="text-red-600 hover:text-red-800 flex items-center gap-1"
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -268,7 +296,7 @@ const Expenses = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Aina ya Gharama *
+                  Aina ya Matumizi *
                 </label>
                 <input
                   type="text"
@@ -326,7 +354,7 @@ const Expenses = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Risiti (si lazima)
+                  Risiti (Kwa matumizi yenye risiti)
                 </label>
                 <input
                   type="file"
@@ -362,6 +390,138 @@ const Expenses = () => {
                 </button>
               </div>
             </form>
+          </div>
+</div>
+      )}
+
+      {/* Invoice Preview Modal */}
+      {showInvoiceModal && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">Invoice Preview</h2>
+                <p className="text-sm text-gray-600">
+                  #{selectedInvoice._id.slice(-6)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowInvoiceModal(false);
+                  setSelectedInvoice(null);
+                }}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Customer</h3>
+                <p className="text-gray-900">
+                  {selectedInvoice.customerId?.name || "N/A"}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedInvoice.customerId?.phone}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedInvoice.customerId?.address}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-700">Dates</h3>
+                <p className="text-gray-900">
+                  Submitted:{" "}
+                  {selectedInvoice.createdAt
+                    ? new Date(selectedInvoice.createdAt).toLocaleDateString()
+                    : "-"}
+                </p>
+                <p className="text-gray-900">
+                  Pickup:{" "}
+                  {selectedInvoice.pickupDate
+                    ? new Date(selectedInvoice.pickupDate).toLocaleDateString()
+                    : "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-600">
+                    <th className="pb-2">Service</th>
+                    <th className="pb-2 text-right">Qty</th>
+                    <th className="pb-2 text-right">Price</th>
+                    <th className="pb-2 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedInvoice.items?.map((item, idx) => {
+                    const service =
+                      item.serviceName || item.service?.name || "Service";
+                    const qty = item.quantity || 1;
+                    const price = item.unitPrice || item.price || 0;
+                    const line = item.totalPrice || price * qty;
+                    return (
+                      <tr key={idx} className="border-t">
+                        <td className="py-2">{service}</td>
+                        <td className="py-2 text-right">
+                          {Number(qty || 0).toFixed(3)}
+                        </td>
+                        <td className="py-2 text-right">
+                          TSh {price.toLocaleString()}
+                        </td>
+                        <td className="py-2 text-right">
+                          TSh {line.toLocaleString()}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <div className="mt-4 flex justify-end">
+                <div className="w-64">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>
+                      TSh{" "}
+                      {(
+                        selectedInvoice.subtotal ||
+                        selectedInvoice.total ||
+                        0
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Discount</span>
+                    <span>
+                      TSh {selectedInvoice.discount?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-medium mt-2">
+                    <span>Total</span>
+                    <span>
+                      TSh {selectedInvoice.total?.toLocaleString() || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowInvoiceModal(false);
+                  setSelectedInvoice(null);
+                }}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

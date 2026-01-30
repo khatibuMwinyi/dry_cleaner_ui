@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { analyticsAPI } from "../api/api";
 import {
   BarChart,
@@ -14,6 +15,7 @@ import {
 } from "recharts";
 import { DollarSign, TrendingUp, TrendingDown, Users } from "lucide-react";
 import Loader from "../components/Loader";
+import { formatCurrency } from "../utils/formatNumber";
 
 const Dashboard = () => {
   const [financialData, setFinancialData] = useState(null);
@@ -37,7 +39,7 @@ const Dashboard = () => {
       ]);
 
       setFinancialData(financial.data);
-      
+
       // Format daily data to include month labels
       const formattedDailyData = daily.data.map((item) => {
         const date = new Date(item.date);
@@ -46,15 +48,23 @@ const Dashboard = () => {
         return {
           ...item,
           dayLabel: `${dayNumber} ${monthName}`,
-          monthLabel: date.toLocaleString("default", { month: "long", year: "numeric" }),
+          monthLabel: date.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          }),
         };
       });
       setDailyData(formattedDailyData);
-      
+
       setMonthlyData(monthly.data);
       setTopCustomers(topCust.data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Access denied. Please check your permissions.");
+      } else {
+        toast.error("Failed to load dashboard data. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -80,7 +90,7 @@ const Dashboard = () => {
           Financial analytics and business insights
         </p>
       </div>
-      <hr className="w-full h-1 bg-gray-200"/>
+      <hr className="w-full h-1 bg-gray-200" />
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -89,7 +99,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-gray-600">Total Revenue</p>
               <p className="text-2xl font-bold text-[#0F172A] mt-1">
-                TSh {financialData?.revenue?.total?.toLocaleString() || "0"}
+                {formatCurrency(financialData?.revenue?.total || 0)}
               </p>
             </div>
             <DollarSign className="w-5 h-10 text-green-500" />
@@ -101,7 +111,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-gray-600">Total Expenses</p>
               <p className="text-2xl font-bold text-[#0F172A] mt-1">
-                TSh {financialData?.expenses?.total?.toLocaleString() || "0"}
+                {formatCurrency(financialData?.expenses?.total || 0)}
               </p>
             </div>
             <TrendingDown className="w-5 h-10 text-red-500" />
@@ -113,7 +123,7 @@ const Dashboard = () => {
             <div>
               <p className="text-sm text-gray-600">Net Profit</p>
               <p className="text-2xl font-bold text-[#0F172A] mt-1">
-                TSh {financialData?.profit?.toLocaleString() || "0"}
+                {formatCurrency(financialData?.profit || 0)}
               </p>
             </div>
             <TrendingUp className="w-5 h-10 text-blue-500" />
@@ -143,10 +153,10 @@ const Dashboard = () => {
           <ResponsiveContainer width="100%" height={370}>
             <BarChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="dayLabel" 
-                angle={-45} 
-                textAnchor="end" 
+              <XAxis
+                dataKey="dayLabel"
+                angle={-45}
+                textAnchor="end"
                 height={100}
                 interval={2}
                 tickFormatter={(value, index) => {
@@ -163,12 +173,9 @@ const Dashboard = () => {
                   return value.split(" ")[0];
                 }}
               />
-              <YAxis 
-                domain={[0, 20000]} 
-                
-              />
-              <Tooltip 
-                formatter={(value) => `TSh ${value.toLocaleString()}`}
+              <YAxis domain={[0, 20000]} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
                 labelFormatter={(value, payload) => {
                   if (payload && payload[0] && payload[0].payload) {
                     const dataPoint = payload[0].payload;
@@ -192,18 +199,9 @@ const Dashboard = () => {
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="month" 
-                angle={-45} 
-                textAnchor="end" 
-                height={80}
-                
-              />
-              <YAxis 
-                domain={[0, 150000]} 
-                
-              />
-              <Tooltip formatter={(value) => `TSh ${value.toLocaleString()}`} />
+              <XAxis dataKey="month" angle={-45} textAnchor="end" height={80} />
+              <YAxis domain={[0, 150000]} />
+              <Tooltip formatter={(value) => formatCurrency(value)} />
               <Legend />
               <Line
                 type="monotone"
@@ -255,7 +253,7 @@ const Dashboard = () => {
                     {customer.customerPhone}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    TSh {customer.totalSpent.toLocaleString()}
+                    {formatCurrency(customer.totalSpent)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {customer.invoiceCount}

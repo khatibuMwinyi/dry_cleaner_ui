@@ -5,6 +5,7 @@ import { serviceAPI, inventoryAPI } from "../api/api";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
 import { useAuth } from "../auth/AuthContext";
+import { formatCurrency } from "../utils/formatNumber";
 
 const Services = () => {
   const { user } = useAuth();
@@ -50,6 +51,11 @@ const Services = () => {
   const updateConsumable = (index, field, value) => {
     const updated = [...form.consumables];
     updated[index][field] = value;
+    setForm({ ...form, consumables: updated });
+  };
+
+  const removeConsumable = (index) => {
+    const updated = form.consumables.filter((_, i) => i !== index);
     setForm({ ...form, consumables: updated });
   };
 
@@ -182,7 +188,9 @@ const Services = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs uppercase">Name</th>
                 <th className="px-6 py-3 text-left text-xs uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs uppercase">Actions</th>
+                <th className="px-6 py-3 text-left text-xs uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -190,7 +198,9 @@ const Services = () => {
                 <tr key={service._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">{service.name}</td>
                   <td className="px-6 py-4">
-                    {service.basePrice?.toLocaleString() ?? "-"}
+                    {service.basePrice !== undefined
+                      ? formatCurrency(service.basePrice)
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 flex gap-2">
                     {canExecute && (
@@ -272,6 +282,14 @@ const Services = () => {
                     step="0.001"
                     className="w-24 border px-2 py-1 rounded"
                   />
+                  <button
+                    type="button"
+                    onClick={() => removeConsumable(i)}
+                    className="text-red-600 hover:text-red-800 p-1"
+                    title="Remove consumable"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               ))}
               <button
