@@ -109,10 +109,52 @@ const Invoices = () => {
       <head>
         <title>Opening WhatsApp…</title>
         <meta charset="utf-8" />
+        <style>
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+          }
+          .container {
+            text-align: center;
+          }
+          .loader {
+            width: 3rem; /* 48px */
+            height: 3rem; /* 48px */
+            margin: 0 auto 1.5rem;
+            border-width: 4px;
+            border-style: solid;
+            border-color: #60a5fa; /* blue-400 */
+            border-top-color: transparent;
+            border-radius: 9999px; /* rounded-full */
+            animation: spin 1s linear infinite;
+          }
+          h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+          }
+          p {
+            font-size: 1rem;
+            color: #666;
+            margin: 0;
+          }
+        </style>
       </head>
-      <body style="font-family:sans-serif;padding:24px">
-        <h3>Opening WhatsApp…</h3>
-        <p>This will only take a moment.</p>
+      <body>
+        <div class="container">
+          <div class="loader"></div>
+          <h3>Opening WhatsApp…</h3>
+          <p>This will only take a moment.</p>
+        </div>
       </body>
     </html>
   `);
