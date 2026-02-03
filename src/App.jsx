@@ -8,6 +8,7 @@ import Invoices from './pages/Invoices';
 import Services from './pages/Services';
 import Expenses from './pages/Expenses';
 import Inventory from './pages/Inventory';
+import Reports from './pages/Reports';
 import Login from "./pages/Login";
 import RegisterAdmin from "./pages/RegisterAdmin";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -69,6 +70,14 @@ function App() {
                     element={
                       <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
                         <Inventory />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/reports"
+                    element={
+                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                        <Reports />
                       </ProtectedRoute>
                     }
                   />

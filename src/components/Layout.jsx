@@ -6,6 +6,7 @@ import {
   Settings,
   DollarSign,
   Package,
+  BarChart3,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 
@@ -27,7 +28,10 @@ const Layout = ({ children }) => {
       : []),
     { path: "/expenses", icon: DollarSign, label: "Expenses" },
     ...(user?.role === "MODERATOR"
-      ? [{ path: "/register-admin", icon: Users, label: "Register Admin" }]
+      ? [
+          { path: "/reports", icon: BarChart3, label: "Reports" },
+          { path: "/register-admin", icon: Users, label: "Register Admin" }
+        ]
       : []),
   ];
 
