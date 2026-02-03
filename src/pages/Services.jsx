@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Plus, Play, Trash2, Edit } from "lucide-react";
-import { serviceAPI, inventoryAPI } from "../api/api";
+import { serviceAPI } from "../api/serviceApi.js";
+import { inventoryAPI } from "../api/inventoryApi.js";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
 import { useAuth } from "../auth/AuthContext";

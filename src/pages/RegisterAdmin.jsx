@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { authAPI } from "../api/api";
+import { authAPI } from "../api/authApi.js";
 import Loader from "../components/Loader";
 
 const RegisterAdmin = () => {

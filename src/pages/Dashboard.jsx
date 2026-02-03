@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { toast } from "react-toastify";
-import { analyticsAPI } from "../api/api";
+import { analyticsAPI } from "../api/analyticsApi.js";
 import Loader from "../components/Loader";
 import FinancialSummary from "../components/Dashboard/FinancialSummary";
 

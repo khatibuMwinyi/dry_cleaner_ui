@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import {
-  invoiceAPI,
-  customerAPI,
-  serviceAPI,
-} from "../api/api";
+import { invoiceAPI } from "../api/invoiceApi.js";
+import { customerAPI } from "../api/customerApi.js";
+import { serviceAPI } from "../api/serviceApi.js";
 import {
   Plus,
   CheckCircle,

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Plus, Trash2, Paperclip, Eye, X } from "lucide-react";
-import { expenseAPI, invoiceAPI } from "../api/api";
+import { expenseAPI } from "../api/expenseApi.js";
+import { invoiceAPI } from "../api/invoiceApi.js";
 import Loader from "../components/Loader";
 import { useAuth } from "../auth/AuthContext";
 import { formatCurrency, formatQuantity } from "../utils/formatNumber";

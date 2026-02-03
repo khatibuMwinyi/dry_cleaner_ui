@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
-import { inventoryAPI } from "../api/api";
+import { inventoryAPI } from "../api/inventoryApi.js";
 import { Plus, Edit, Trash2, AlertTriangle } from "lucide-react";
 import Loader from "../components/Loader";
 
