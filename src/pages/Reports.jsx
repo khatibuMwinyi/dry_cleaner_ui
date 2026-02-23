@@ -39,18 +39,18 @@ const Reports = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
-        <p className="text-gray-600">Generate and download monthly financial reports</p>
+    <div className="p-4 md:p-6">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Reports</h1>
+        <p className="text-gray-600 text-sm md:text-base">Generate and download monthly financial reports</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <div className="bg-white rounded-lg shadow-md p-4 md:p-6 max-w-2xl">
+        <div className="mb-4 md:mb-6">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
             Monthly Revenue vs Expenses Report
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">
             Generate a comprehensive PDF report showing detailed breakdown of revenue and expenses for a specific month.
           </p>
 

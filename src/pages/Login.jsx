@@ -25,9 +25,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#DDE1E8] flex items-center justify-center p-6">
-      <div className="bg-white rounded-lg shadow w-full max-w-md p-6">
-        <h1 className="text-2xl font-bold text-[#0F172A]">Login</h1>
+    <div className="min-h-screen bg-[#DDE1E8] flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow w-full max-w-md p-4 md:p-6">
+        <h1 className="text-xl md:text-2xl font-bold text-[#0F172A]">Login</h1>
         <p className="text-sm text-gray-600 mt-1">
           Ingiza barua pepe na nenosiri
         </p>

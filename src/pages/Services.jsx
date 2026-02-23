@@ -165,20 +165,20 @@ const Services = () => {
   const canExecute = user?.role === "ADMIN";
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Services</h1>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Services</h1>
         {canManageServices && (
           <button
             onClick={() => setShowModal(true)}
-            className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm md:text-base w-fit"
           >
-            <Plus size={18} /> Add Service
+            <Plus size={18} /> <span className="hidden sm:inline">Add Service</span><span className="sm:hidden">Add</span>
           </button>
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         {loading ? (
           <div className="p-8 flex items-center justify-center text-gray-500">
             <Loader />

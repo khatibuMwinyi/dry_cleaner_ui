@@ -154,25 +154,25 @@ const Expenses = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Expenses</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Expenses</h1>
+          <p className="text-gray-600 mt-1 text-sm md:text-base">
             Fuata na simamia gharama za biashara
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg hover:bg-[#0F172A] flex items-center gap-2"
+          className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg hover:bg-[#0F172A] flex items-center gap-2 text-sm md:text-base w-fit"
         >
-          <Plus className="w-5 h-5" /> Add Expense
+          <Plus className="w-5 h-5" /> <span className="hidden sm:inline">Add Expense</span><span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Expenses Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         {loading ? (
           <div className="p-8 flex items-center justify-center text-gray-500">
             <Loader />

@@ -84,12 +84,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pt-6 pb-4">
-        <h1 className="text-3xl font-bold text-gray-800">
+    <div className="space-y-4 md:space-y-6">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-6 pb-3 md:pb-4">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">
           Dashboard Overview
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-gray-600 mt-1 text-sm md:text-base">
           Financial analytics and business insights
         </p>
       </div>

@@ -22,15 +22,15 @@ const RegisterAdmin = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6">
-        <h1 className="text-3xl font-bold text-gray-800">Register Admin</h1>
-        <p className="text-gray-600 mt-1">
+    <div className="space-y-4 md:space-y-6">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Register Admin</h1>
+        <p className="text-gray-600 mt-1 text-sm md:text-base">
           Moderator anaweza kusajili admin mpya
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6 max-w-xl">
+      <div className="bg-white rounded-lg shadow p-4 md:p-6 max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

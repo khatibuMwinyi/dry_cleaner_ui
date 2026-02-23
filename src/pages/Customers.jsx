@@ -50,18 +50,19 @@ const Customers = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
+    <div className="space-y-4 md:space-y-6">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Customers</h1>
-          <p className="text-gray-600 mt-1">Manage your customer database</p>
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Customers</h1>
+          <p className="text-gray-600 mt-1 text-sm md:text-base">Manage your customer database</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm md:text-base w-fit"
         >
           <Plus className="w-5 h-5" />
-          Add Customer
+          <span className="hidden sm:inline">Add Customer</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
@@ -80,7 +81,7 @@ const Customers = () => {
       </div>
 
       {/* Customers Table */}
-      <div className="bg-[#F8F8F9] rounded-lg shadow overflow-hidden">
+      <div className="bg-[#F8F8F9] rounded-lg shadow overflow-x-auto">
         {loading ? (
           <div className="p-8 text-center text-gray-500">
             <div className="text-gray-500 flex flex-col items-center justify-center">
@@ -92,16 +93,16 @@ const Customers = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Phone
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
                   Joined
                 </th>
               </tr>
@@ -109,16 +110,16 @@ const Customers = () => {
             <tbody className="bg-[#F8F8F9] divide-y divide-gray-200">
               {filteredCustomers.map((customer) => (
                 <tr key={customer._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {customer.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {customer.phone}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                     {customer.email || "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                     {new Date(customer.createdAt).toLocaleDateString()}
                   </td>
                 </tr>

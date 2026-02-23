@@ -160,12 +160,12 @@ const Inventory = () => {
   /* ------------------------------- UI -------------------------------- */
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-8 -mt-8 px-8 pb-4 pt-6 flex justify-between items-center">
+      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Inventory</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Inventory</h1>
+          <p className="text-gray-600 mt-1 text-sm md:text-base">
             Track and manage resources and supplies
           </p>
         </div>
@@ -174,26 +174,27 @@ const Inventory = () => {
             resetModal();
             setShowModal(true);
           }}
-          className="text-white px-4 py-2 rounded-lg bg-[#2D3A58] hover:bg-[#0F172A] flex items-center gap-2"
+          className="text-white px-4 py-2 rounded-lg bg-[#2D3A58] hover:bg-[#0F172A] flex items-center gap-2 text-sm md:text-base w-fit"
         >
           <Plus className="w-5 h-5" />
-          Add Item
+          <span className="hidden sm:inline">Add Item</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Low Stock Alert */}
       {lowStockItems.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 md:p-4">
           <div className="flex items-center gap-2 text-yellow-800">
-            <AlertTriangle className="w-5 h-5" />
-            <span className="font-semibold">Low Stock Alert</span>
+            <AlertTriangle className="w-4 h-5" />
+            <span className="font-semibold text-sm md:text-base">Low Stock Alert</span>
           </div>
-          <p className="text-sm text-yellow-700 mt-2">
+          <p className="text-sm text-yellow-700 mt-1 md:mt-2">
             {lowStockItems.length} item(s) are below reorder level
           </p>
-          <div className="mt-3 space-y-1">
+          <div className="mt-2 md:mt-3 space-y-1">
             {lowStockItems.map((item) => (
-              <div key={item._id} className="text-sm text-yellow-700">
+              <div key={item._id} className="text-xs md:text-sm text-yellow-700">
                 • {item.name}: {Number(item.quantity || 0).toFixed(3)} {item.unit || ""}
               </div>
             ))}
@@ -202,7 +203,7 @@ const Inventory = () => {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         {loading ? (
           <div className="p-8 flex justify-center">
             <Loader />
@@ -211,25 +212,25 @@ const Inventory = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Item
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Qty
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
                   Unit
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
                   Cost/Unit
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
                   Reorder
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -237,37 +238,39 @@ const Inventory = () => {
             <tbody className="divide-y divide-gray-200">
               {inventory.map((item) => (
                 <tr key={item._id}>
-                  <td className="px-6 py-4 font-medium">{item.name}</td>
-                  <td className="px-6 py-4">{Number(item.quantity || 0).toFixed(3)}</td>
-                  <td className="px-6 py-4">{item.unit || "-"}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-sm">{item.name}</td>
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm">{Number(item.quantity || 0).toFixed(3)}</td>
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden sm:table-cell">{item.unit || "-"}</td>
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden md:table-cell">
                     {Number(item.costPerUnit || 0).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">{item.reorderLevel ?? "-"}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden lg:table-cell">{item.reorderLevel ?? "-"}</td>
+                  <td className="px-3 md:px-6 py-3 md:py-4">
                     {isLowStock(item) ? (
-                      <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
-                        Low Stock
+                      <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full whitespace-nowrap">
+                        Low
                       </span>
                     ) : (
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                        In Stock
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full whitespace-nowrap">
+                        OK
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 flex gap-2">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="text-blue-600"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <td className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="text-blue-600 p-1"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item._id)}
+                        className="text-red-600 p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -278,9 +281,9 @@ const Inventory = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg md:text-xl font-bold mb-4">
               {editingItem ? "Edit Item" : "Add Item"}
             </h2>
 
@@ -295,7 +298,7 @@ const Inventory = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded text-base"
                 />
               </div>
 
@@ -311,7 +314,7 @@ const Inventory = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, quantity: e.target.value })
                   }
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded text-base"
                 />
               </div>
 
@@ -324,7 +327,7 @@ const Inventory = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, unit: e.target.value })
                   }
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded text-base"
                   placeholder="kg, liters, pieces"
                 />
               </div>
@@ -341,7 +344,7 @@ const Inventory = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, costPerUnit: e.target.value })
                   }
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded text-base"
                 />
               </div>
 
@@ -356,18 +359,18 @@ const Inventory = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, reorderLevel: e.target.value })
                   }
-                  className="w-full border p-2 rounded"
+                  className="w-full border p-2 rounded text-base"
                 />
               </div>
 
               <div className="flex gap-2 pt-3">
-                <button className="flex-1 bg-[#2D3A58] text-white py-2 rounded">
+                <button className="flex-1 bg-[#2D3A58] text-white py-2 md:py-3 rounded text-base">
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={resetModal}
-                  className="flex-1 bg-gray-200 py-2 rounded"
+                  className="flex-1 bg-gray-200 py-2 md:py-3 rounded text-base"
                 >
                   Cancel
                 </button>
