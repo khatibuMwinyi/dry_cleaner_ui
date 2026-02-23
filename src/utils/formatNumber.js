@@ -10,15 +10,10 @@ export const formatNumber = (num, decimals = 2) => {
   const number = Number(num);
   if (isNaN(number)) return '0';
   
-  // Check if the number is whole (no decimal part)
-  if (Number.isInteger(number)) {
-    return number.toLocaleString();
-  }
-  
-  // For decimal numbers, show up to specified decimal places but remove trailing zeros
-  const formatted = number.toFixed(decimals);
-  // Remove trailing zeros after decimal point
-  return formatted.replace(/\.?0+$/, '');
+  return number.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 };
 
 /**
