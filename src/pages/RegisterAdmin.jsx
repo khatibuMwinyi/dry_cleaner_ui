@@ -5,17 +5,18 @@ import Loader from "../components/Loader";
 
 const RegisterAdmin = () => {
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "", role: "ADMIN" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await authAPI.registerAdmin({ email: form.email, password: form.password });
-      toast.success("Admin mpya amesajiliwa");
-      setForm({ email: "", password: "" });
+      await authAPI.registerUser(form);
+      const roleLabel = form.role === "ADMIN" ? "Admin" : "Cleaner";
+      toast.success(`${roleLabel} mpya amesajiliwa`);
+      setForm({ email: "", password: "", role: "ADMIN" });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Imeshindikana kusajili admin");
+      toast.error(err.response?.data?.message || "Imeshindikana kusajili mtumiaji");
     } finally {
       setLoading(false);
     }
@@ -24,14 +25,27 @@ const RegisterAdmin = () => {
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4">
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Register Admin</h1>
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Register User</h1>
         <p className="text-gray-600 mt-1 text-sm md:text-base">
-          Moderator anaweza kusajili admin mpya
+          Moderator anaweza kusajili admin au cleaner mpya
         </p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-4 md:p-6 max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Role
+            </label>
+            <select
+              value={form.role}
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
+            >
+              <option value="ADMIN">Admin</option>
+              <option value="CLEANER">Cleaner</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -63,7 +77,7 @@ const RegisterAdmin = () => {
             disabled={loading}
             className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
-            {loading ? <Loader /> : "Create Admin"}
+            {loading ? <Loader /> : `Create ${form.role === "ADMIN" ? "Admin" : "Cleaner"}`}
           </button>
         </form>
       </div>
@@ -72,5 +86,3 @@ const RegisterAdmin = () => {
 };
 
 export default RegisterAdmin;
-
-
