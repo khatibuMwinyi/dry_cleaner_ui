@@ -11,6 +11,7 @@ import Inventory from './pages/Inventory';
 import Reports from './pages/Reports';
 import Login from "./pages/Login";
 import RegisterAdmin from "./pages/RegisterAdmin";
+import JobTracking from "./pages/JobTracking";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -86,6 +87,14 @@ function App() {
                     element={
                       <ProtectedRoute allowRoles={["MODERATOR"]}>
                         <RegisterAdmin />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/job-tracking"
+                    element={
+                      <ProtectedRoute allowRoles={["ADMIN", "CLEANER"]}>
+                        <JobTracking />
                       </ProtectedRoute>
                     }
                   />

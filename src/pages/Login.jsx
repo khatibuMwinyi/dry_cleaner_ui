@@ -14,9 +14,14 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login({ email: form.email, password: form.password });
+      const res = await login({ email: form.email, password: form.password });
+      const user = JSON.parse(localStorage.getItem("user"));
       toast.success("Umefanikiwa kuingia kwenye mfumo");
-      navigate("/", { replace: true });
+      if (user?.role === "CLEANER") {
+        navigate("/job-tracking", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Imeshindikana kuingia");
     } finally {

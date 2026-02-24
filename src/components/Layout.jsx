@@ -10,6 +10,7 @@ import {
   BarChart3,
   Menu,
   X,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 
@@ -19,22 +20,29 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { path: "/", icon: LayoutDashboard, label: "Dashboard" },
     ...(user?.role === "ADMIN"
       ? [
+          { path: "/", icon: LayoutDashboard, label: "Dashboard" },
           { path: "/customers", icon: Users, label: "Customers" },
           { path: "/invoices", icon: FileText, label: "Invoices" },
+          { path: "/job-tracking", icon: ClipboardList, label: "Job Tracking" },
+          { path: "/services", icon: Settings, label: "Services" },
+          { path: "/expenses", icon: DollarSign, label: "Expenses" },
         ]
       : []),
-    { path: "/services", icon: Settings, label: "Services" },
-    ...(user?.role === "MODERATOR"
-      ? [{ path: "/inventory", icon: Package, label: "Inventory" }]
-      : []),
-    { path: "/expenses", icon: DollarSign, label: "Expenses" },
     ...(user?.role === "MODERATOR"
       ? [
+          { path: "/", icon: LayoutDashboard, label: "Dashboard" },
+          { path: "/services", icon: Settings, label: "Services" },
+          { path: "/inventory", icon: Package, label: "Inventory" },
+          { path: "/expenses", icon: DollarSign, label: "Expenses" },
           { path: "/reports", icon: BarChart3, label: "Reports" },
-          { path: "/register-admin", icon: Users, label: "Register Admin" }
+          { path: "/register-admin", icon: Users, label: "Register User" }
+        ]
+      : []),
+    ...(user?.role === "CLEANER"
+      ? [
+          { path: "/job-tracking", icon: ClipboardList, label: "Job Tracking" },
         ]
       : []),
   ];
