@@ -8,7 +8,6 @@ import {
   CheckCircle,
   XCircle,
   CreditCard,
-  Play,
   Send,
   Eye,
   X,
@@ -63,19 +62,6 @@ const Invoices = () => {
     } catch (error) {
       toast.error(
         "Error marking invoice as paid: " +
-          (error.response?.data?.message || error.message),
-      );
-    }
-  };
-
-  const handleExecuteInvoice = async (id) => {
-    try {
-      await invoiceAPI.executeServices(id);
-      toast.success("Huduma za invoice zimefanyika kikamilifu!");
-      fetchData();
-    } catch (error) {
-      toast.error(
-        "Imeshindikana kutekeleza huduma: " +
           (error.response?.data?.message || error.message),
       );
     }
@@ -330,19 +316,6 @@ const Invoices = () => {
                       </button>
 
                       <button
-                        onClick={() => handleExecuteInvoice(invoice._id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title={
-                          invoice.isExecuted
-                            ? "Already executed"
-                            : "Execute services for this invoice"
-                        }
-                        disabled={invoice.isExecuted}
-                      >
-                        <Play className="w-5 h-5" />
-                      </button>
-
-                      <button
                         onClick={() => handleSendWhatsappInvoice(invoice._id)}
                         className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
                         title="Send Invoice via WhatsApp"
@@ -432,7 +405,7 @@ const Invoices = () => {
                       <tr key={idx} className="border-t">
                         <td className="py-2">{service}</td>
                         <td className="py-2 text-right">
-                          {Number(qty || 0).toFixed(3)}
+                          {Number(qty || 0).toLocaleString()}
                         </td>
                         <td className="py-2 text-right">
                           TSh {price.toLocaleString()}
