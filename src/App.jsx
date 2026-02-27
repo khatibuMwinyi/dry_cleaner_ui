@@ -29,7 +29,7 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["MODERATOR"]}>
                         <Dashboard />
                       </ProtectedRoute>
                     }
