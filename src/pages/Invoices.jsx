@@ -3,17 +3,11 @@ import { toast } from "react-toastify";
 import { invoiceAPI } from "../api/invoiceApi.js";
 import { customerAPI } from "../api/customerApi.js";
 import { serviceAPI } from "../api/serviceApi.js";
-import {
-  Plus,
-  CheckCircle,
-  XCircle,
-  CreditCard,
-  Send,
-  Eye,
-  X,
-} from "lucide-react";
+import { Plus, X } from "lucide-react";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
+import DateFilter from "../components/DateFilter.jsx";
+import InvoiceTable from "../components/InvoiceTable.jsx";
 
 const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
@@ -29,17 +23,19 @@ const Invoices = () => {
     discount: 0,
     pickupDate: "",
   });
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (dateStart = startDate, dateEnd = endDate) => {
     try {
       setLoading(true);
       const [invoicesRes, customersRes, servicesRes] =
         await Promise.all([
-          invoiceAPI.getAll(),
+          invoiceAPI.getAll({ startDate: dateStart, endDate: dateEnd }),
           customerAPI.getAll(),
           serviceAPI.getAll(),
         ]);
@@ -51,6 +47,16 @@ const Invoices = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    fetchData(startDate, endDate);
+  };
+
+  const handleClearFilter = () => {
+    setStartDate("");
+    setEndDate("");
+    fetchData("", "");
   };
 
   // ---------------------- Actions ----------------------
@@ -161,6 +167,64 @@ const Invoices = () => {
     }
   };
 
+  const handleSendReceipt = async (id) => {
+    const popup = window.open("about:blank", "_blank");
+
+    if (!popup) {
+      toast.error("Popup blocked. Please allow popups for this site.");
+      return;
+    }
+
+    popup.document.write(`
+    <html>
+      <head>
+        <title>Opening WhatsApp…</title>
+        <meta charset="utf-8" />
+        <style>
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="spinner"></div>
+      </body>
+    </html>
+    `);
+
+    try {
+      const { data } = await invoiceAPI.sendReceipt(id);
+
+      if (!data?.whatsappLink) {
+        throw new Error("Invalid WhatsApp response");
+      }
+
+      popup.location.replace(data.whatsappLink);
+    } catch (err) {
+      popup.close();
+
+      toast.error(
+        err.response?.data?.message || "Failed to send receipt",
+      );
+    }
+  };
+
   // ---------------------- Form Helpers ----------------------
   const handleAddItem = () => {
     setFormData({
@@ -208,128 +272,59 @@ const Invoices = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-3">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="bg-[#DDE1E8] -mx-3 md:-mx-4 lg:-mx-4 -mt-3 md:-mt-4 lg:-mt-4 px-3 md:px-4 lg:px-4 pt-3 md:pt-4 pb-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Invoices</h1>
-          <p className="text-gray-600 mt-1 text-sm md:text-base">
-            Manage customer invoices and orders
+          <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">Invoices</h1>
+          <p className="text-gray-600 text-xs md:text-sm">
+            Manage invoices
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg hover:bg-[#0F172A] flex items-center gap-2 text-sm md:text-base w-fit"
+          className="bg-[#2D3A58] text-white px-3 py-1.5 rounded-lg hover:bg-[#0F172A] flex items-center gap-2 text-xs md:text-sm w-fit"
         >
-          <Plus className="w-5 h-5" /> <span className="hidden sm:inline">Create Invoice</span><span className="sm:hidden">Create</span>
+          <Plus className="w-4 h-4" /> <span>Create</span>
         </button>
       </div>
 
+      {/* Filter */}
+      <DateFilter
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onSearch={handleSearch}
+        onClear={handleClearFilter}
+      />
+
       {/* Invoices Table */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        {loading ? (
+      {loading ? (
+        <div className="bg-white rounded-lg shadow">
           <div className="flex items-center justify-center h-64 text-gray-500">
             <div className="flex flex-col items-center">
               <Loader />
               <span className="mt-2">Loading...</span>
             </div>
           </div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Invoice #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Submitted
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Pickup Date
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {invoices.map((invoice) => (
-                <tr key={invoice._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    #{invoice._id.slice(-6)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900">
-                    {invoice.customerId?.name || "N/A"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {invoice.createdAt
-                      ? new Date(invoice.createdAt).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {invoice.pickupDate
-                      ? new Date(invoice.pickupDate).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 text-right font-medium">
-                    TSh {invoice.total.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {invoice.paymentStatus === "PAID" ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <CheckCircle className="w-4 h-4 mr-1" /> Paid
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        <XCircle className="w-4 h-4 mr-1" /> Pending
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-4">
-                      <button
-                        onClick={() => {
-                          setSelectedInvoice(invoice);
-                          setPreviewModal(true);
-                        }}
-                        className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                        title="Preview Invoice"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-
-                      <button
-                        onClick={() => handleMarkPaid(invoice._id)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                        title="Mark as Paid"
-                      >
-                        <CreditCard className="w-5 h-5" />
-                      </button>
-
-                      <button
-                        onClick={() => handleSendWhatsappInvoice(invoice._id)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
-                        title="Send Invoice via WhatsApp"
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+        </div>
+      ) : invoices.length === 0 ? (
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-8 text-center text-gray-500">No invoices found</div>
+        </div>
+      ) : (
+        <InvoiceTable
+          invoices={invoices}
+          onPreview={(invoice) => {
+            setSelectedInvoice(invoice);
+            setPreviewModal(true);
+          }}
+          onMarkPaid={handleMarkPaid}
+          onSendWhatsapp={handleSendWhatsappInvoice}
+          onSendReceipt={handleSendReceipt}
+        />
+      )}
 
       {/* Preview Invoice Modal */}
       {previewModal && selectedInvoice && (
@@ -390,8 +385,8 @@ const Invoices = () => {
                   <tr className="text-gray-600">
                     <th className="pb-2">Service</th>
                     <th className="pb-2 text-right">Qty</th>
-                    <th className="pb-2 text-right">Price</th>
-                    <th className="pb-2 text-right">Total</th>
+                    <th className="pb-2 text-right">Price (TSh)</th>
+                    <th className="pb-2 text-right">Total (TSh)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -408,10 +403,10 @@ const Invoices = () => {
                           {Number(qty || 0).toLocaleString()}
                         </td>
                         <td className="py-2 text-right">
-                          TSh {price.toLocaleString()}
+                          {price.toLocaleString()}
                         </td>
                         <td className="py-2 text-right">
-                          TSh {line.toLocaleString()}
+                          {line.toLocaleString()}
                         </td>
                       </tr>
                     );
@@ -424,7 +419,6 @@ const Invoices = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span>
-                      TSh{" "}
                       {(
                         selectedInvoice.subtotal ||
                         selectedInvoice.total ||
@@ -435,13 +429,13 @@ const Invoices = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Discount</span>
                     <span>
-                      TSh {selectedInvoice.discount?.toLocaleString() || 0}
+                      {selectedInvoice.discount?.toLocaleString() || 0}
                     </span>
                   </div>
                   <div className="flex justify-between font-medium mt-2">
-                    <span>Total</span>
+                    <span>Total (TSh)</span>
                     <span>
-                      TSh {selectedInvoice.total?.toLocaleString() || 0}
+                      {selectedInvoice.total?.toLocaleString() || 0}
                     </span>
                   </div>
                 </div>

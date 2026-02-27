@@ -9,4 +9,5 @@ export const invoiceAPI = {
   markPaid: (id) => api.post(`/invoices/${id}/pay`),
   executeServices: (id) => api.post(`/invoices/${id}/execute`),
   sendWhatsappInvoice: (id) => api.post(`/invoices/${id}/send-whatsapp`),
+  sendReceipt: (id) => api.post(`/invoices/${id}/send-receipt`),
 };
