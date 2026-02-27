@@ -12,8 +12,10 @@ import {
   Package,
   Check,
   AlertTriangle,
+  Bell,
 } from "lucide-react";
 import Loader from "../components/Loader";
+import DateFilter from "../components/DateFilter.jsx";
 
 const JobTracking = () => {
   const [jobs, setJobs] = useState([]);
@@ -26,6 +28,8 @@ const JobTracking = () => {
   const [clothCount, setClothCount] = useState("");
   const [denyReason, setDenyReason] = useState("");
   const [verifyStatus, setVerifyStatus] = useState("success");
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const { user } = useAuth();
 
   const isAdmin = user?.role === "ADMIN";
@@ -35,10 +39,10 @@ const JobTracking = () => {
     fetchJobs();
   }, []);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (dateStart = startDate, dateEnd = endDate) => {
     try {
       setLoading(true);
-      const response = await jobApi.getJobs();
+      const response = await jobApi.getJobs(null, dateStart, dateEnd);
       setJobs(response.data);
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -47,9 +51,26 @@ const JobTracking = () => {
     }
   };
 
+  const handleSearch = () => {
+    fetchJobs(startDate, endDate);
+  };
+
+  const handleClearFilter = () => {
+    setStartDate("");
+    setEndDate("");
+    fetchJobs("", "");
+  };
+
   const handleReceive = async () => {
+    const enteredCount = parseInt(clothCount) || 0;
+    
+    if (enteredCount > selectedJob.notedClothCount) {
+      toast.error(`Count cannot exceed noted count (${selectedJob.notedClothCount})`);
+      return;
+    }
+
     try {
-      await jobApi.receiveJob(selectedJob._id, parseInt(clothCount) || 0);
+      await jobApi.receiveJob(selectedJob._id, enteredCount);
       toast.success("Job marked as received!");
       setShowReceiveModal(false);
       setClothCount("");
@@ -79,14 +100,72 @@ const JobTracking = () => {
       toast.success(
         verifyStatus === "success"
           ? "Job verified successfully!"
-          : "Job denied by admin!"
+          : "Job denied!"
       );
       setShowVerifyModal(false);
+      setShowDenyModal(false);
       setDenyReason("");
       fetchJobs();
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to verify job"
+      );
+    }
+  };
+
+  const handleSendPickupNotification = async (jobId) => {
+    const popup = window.open("about:blank", "_blank");
+
+    if (!popup) {
+      toast.error("Popup blocked. Please allow popups for this site.");
+      return;
+    }
+
+    popup.document.write(`
+    <html>
+      <head>
+        <title>Opening WhatsApp…</title>
+        <meta charset="utf-8" />
+        <style>
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+          }
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #25D366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="spinner"></div>
+      </body>
+    </html>
+    `);
+
+    try {
+      const { data } = await jobApi.sendPickupNotification(jobId);
+
+      if (!data?.whatsappLink) {
+        throw new Error("Invalid WhatsApp response");
+      }
+
+      popup.location.replace(data.whatsappLink);
+    } catch (err) {
+      popup.close();
+      toast.error(
+        err.response?.data?.message || "Failed to send pickup notification",
       );
     }
   };
@@ -142,7 +221,7 @@ const JobTracking = () => {
     const config = statusConfig[status] || statusConfig.waiting;
     return (
       <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.class}`}
+        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${config.class}`}
       >
         {config.icon}
         {config.label}
@@ -179,10 +258,10 @@ const JobTracking = () => {
           setSelectedJob(job);
           setShowViewModal(true);
         }}
-        className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+        className="p-1 text-gray-600 hover:bg-gray-50 rounded-lg"
         title="View Details"
       >
-        <Eye className="w-5 h-5" />
+        <Eye className="w-4 h-4" />
       </button>
     );
 
@@ -191,10 +270,10 @@ const JobTracking = () => {
         <button
           key="receive"
           onClick={() => openReceiveModal(job)}
-          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+          className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg"
           title="Mark as Received"
         >
-          <Package className="w-5 h-5" />
+          <Package className="w-4 h-4" />
         </button>
       );
     }
@@ -207,7 +286,7 @@ const JobTracking = () => {
           className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg"
           title="Execute (Complete)"
         >
-          <Play className="w-5 h-5" />
+          <Play className="w-4 h-4" />
         </button>
       );
     }
@@ -220,7 +299,20 @@ const JobTracking = () => {
           className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
           title="Verify"
         >
-          <CheckCircle className="w-5 h-5" />
+          <CheckCircle className="w-4 h-4" />
+        </button>
+      );
+    }
+
+    if (isAdmin && job.status === "success") {
+      actions.push(
+        <button
+          key="notify"
+          onClick={() => handleSendPickupNotification(job._id)}
+          className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg"
+          title="Send Pickup Notification"
+        >
+          <Bell className="w-4 h-4" />
         </button>
       );
     }
@@ -233,7 +325,7 @@ const JobTracking = () => {
           className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
           title="Deny"
         >
-          <XCircle className="w-5 h-5" />
+          <XCircle className="w-4 h-4" />
         </button>
       );
     }
@@ -242,80 +334,95 @@ const JobTracking = () => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4">
+    <div className="space-y-3">
+      <div className="bg-[#DDE1E8] -mx-3 md:-mx-4 lg:-mx-4 -mt-3 md:-mt-4 lg:-mt-4 px-3 md:px-4 lg:px-4 pt-3 pb-2">
         <div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">
+          <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
             Job Tracking
           </h1>
-          <p className="text-gray-600 mt-1 text-sm md:text-base">
-            Track and manage cleaning jobs from start to finish
+          <p className="text-gray-600 text-xs md:text-sm">
+            Track the ongoing jobs
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        {loading ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="flex flex-col items-center">
-              <Loader />
-              <span className="mt-2">Loading...</span>
+      {/* Filter */}
+      <DateFilter
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onSearch={handleSearch}
+        onClear={handleClearFilter}
+      />
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 240px)" }}>
+          {loading ? (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="flex flex-col items-center">
+                <Loader />
+                <span className="mt-2">Loading...</span>
+              </div>
             </div>
-          </div>
-        ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Invoice #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Customer Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Phone
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Submitted Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Cloth Count
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {jobs.map((job) => (
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-2 py-2 text-center text-xs font-bold uppercase w-10">#</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Invoice #
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Customer
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Phone
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Submitted
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Cloth
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {jobs.map((job, index) => (
                 <tr key={job._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">
+                  <td className="px-2 py-2 text-center text-sm text-gray-500">
+                    {index + 1}
+                  </td>
+                  <td className="px-4 py-2 text-gray-900">
                     #{job.invoiceNumber}
                   </td>
-                  <td className="px-6 py-4 text-gray-900">
+                  <td className="px-4 py-2 text-gray-900">
                     {job.customerName}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="px-4 py-2 text-gray-600">
                     {job.customerPhone || "-"}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="px-4 py-2 text-gray-600">
                     {job.submittedDate
                       ? new Date(job.submittedDate).toLocaleDateString()
                       : "-"}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="px-4 py-2 text-gray-600">
                     {job.actualClothCount > 0
-                      ? `${job.actualClothCount} (noted: ${job.notedClothCount})`
+                      ? `${job.actualClothCount}`
                       : job.notedClothCount || "-"}
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-2 text-center">
                     {getStatusBadge(job.status)}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center gap-2">
+                  <td className="px-4 py-2 text-center">
+                    <div className="flex justify-center gap-1">
                       {getActions(job)}
                     </div>
                   </td>
@@ -323,7 +430,8 @@ const JobTracking = () => {
               ))}
             </tbody>
           </table>
-        )}
+          )}
+        </div>
       </div>
 
       {showReceiveModal && selectedJob && (
@@ -347,7 +455,7 @@ const JobTracking = () => {
                 Noted cloth count: {selectedJob.notedClothCount}
               </p>
 
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-700 mb-1">
                 Actual Cloth Count *
               </label>
               <input
@@ -399,7 +507,7 @@ const JobTracking = () => {
                 Cloth count: {selectedJob.actualClothCount} (noted: {selectedJob.notedClothCount})
               </p>
 
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Verification Status *
               </label>
               <div className="flex gap-4 mb-4">
@@ -412,7 +520,7 @@ const JobTracking = () => {
                     onChange={(e) => setVerifyStatus(e.target.value)}
                     className="mr-2"
                   />
-                  <span className="text-green-600 font-medium">Success</span>
+                  <span className="text-green-600 font-bold">Success</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -423,13 +531,13 @@ const JobTracking = () => {
                     onChange={(e) => setVerifyStatus(e.target.value)}
                     className="mr-2"
                   />
-                  <span className="text-red-600 font-medium">Deny</span>
+                  <span className="text-red-600 font-bold">Deny</span>
                 </label>
               </div>
 
               {verifyStatus === "denied" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
                     Reason for denial *
                   </label>
                   <textarea
@@ -485,7 +593,7 @@ const JobTracking = () => {
                 Invoice #{selectedJob.invoiceNumber} - {selectedJob.customerName}
               </p>
 
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-700 mb-1">
                 Reason for denial *
               </label>
               <textarea
@@ -531,28 +639,28 @@ const JobTracking = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Invoice Number</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Invoice Number</h3>
                   <p className="text-gray-900">#{selectedJob.invoiceNumber}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Status</h3>
                   <div className="mt-1">{getStatusBadge(selectedJob.status)}</div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Customer Name</h3>
+                <h3 className="text-sm font-bold text-gray-500">Customer Name</h3>
                 <p className="text-gray-900">{selectedJob.customerName}</p>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-gray-500">Phone</h3>
+                <h3 className="text-sm font-bold text-gray-500">Phone</h3>
                 <p className="text-gray-900">{selectedJob.customerPhone || "-"}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Submitted Date</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Submitted Date</h3>
                   <p className="text-gray-900">
                     {selectedJob.submittedDate
                       ? new Date(selectedJob.submittedDate).toLocaleDateString()
@@ -560,7 +668,7 @@ const JobTracking = () => {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Cloth Count</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Cloth Count</h3>
                   <p className="text-gray-900">
                     {selectedJob.actualClothCount > 0
                       ? `${selectedJob.actualClothCount} (noted: ${selectedJob.notedClothCount})`
@@ -571,7 +679,7 @@ const JobTracking = () => {
 
               {selectedJob.receivedDate && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Received Date</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Received Date</h3>
                   <p className="text-gray-900">
                     {new Date(selectedJob.receivedDate).toLocaleDateString()}
                   </p>
@@ -580,7 +688,7 @@ const JobTracking = () => {
 
               {selectedJob.completedDate && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Completed Date</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Completed Date</h3>
                   <p className="text-gray-900">
                     {new Date(selectedJob.completedDate).toLocaleDateString()}
                   </p>
@@ -589,7 +697,7 @@ const JobTracking = () => {
 
               {selectedJob.verifiedDate && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500">Verified Date</h3>
+                  <h3 className="text-sm font-bold text-gray-500">Verified Date</h3>
                   <p className="text-gray-900">
                     {new Date(selectedJob.verifiedDate).toLocaleDateString()}
                   </p>
@@ -600,13 +708,13 @@ const JobTracking = () => {
                 <div className="bg-red-50 p-4 rounded-lg">
                   <div className="grid grid-cols-2 gap-4 mb-2">
                     <div>
-                      <h3 className="text-sm font-medium text-red-600">Denied By</h3>
+                      <h3 className="text-sm font-bold text-red-600">Denied By</h3>
                       <p className="text-gray-900 capitalize">
                         {selectedJob.deniedBy || "-"}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-red-600">Denial Reason</h3>
+                      <h3 className="text-sm font-bold text-red-600">Denial Reason</h3>
                       <p className="text-gray-900">{selectedJob.deniedReason || "-"}</p>
                     </div>
                   </div>

@@ -1,8 +1,11 @@
 import api from "./api";
 
 export const jobApi = {
-  getJobs: (status) => {
-    const params = status ? { status } : {};
+  getJobs: (status, startDate, endDate) => {
+    const params = {};
+    if (status) params.status = status;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
     return api.get("/jobs", { params });
   },
 
@@ -28,5 +31,9 @@ export const jobApi = {
 
   denyJob: (id, reason) => {
     return api.patch(`/jobs/${id}/deny`, { reason });
+  },
+
+  sendPickupNotification: (id) => {
+    return api.post(`/jobs/${id}/send-pickup-notification`);
   },
 };
