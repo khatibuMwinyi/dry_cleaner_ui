@@ -6,7 +6,6 @@ import { inventoryAPI } from "../api/inventoryApi.js";
 import Dropdown from "../components/Dropdown";
 import Loader from "../components/Loader";
 import { useAuth } from "../auth/AuthContext";
-import { formatCurrency } from "../utils/formatNumber";
 
 const Services = () => {
   const { user } = useAuth();
@@ -135,7 +134,7 @@ const Services = () => {
     toast(
       ({ closeToast }) => (
         <div>
-          <p className="font-medium mb-2">Delete this service?</p>
+          <p className="font-bold mb-2">Delete this service?</p>
           <div className="flex gap-2">
             <button
               onClick={async () => {
@@ -163,6 +162,7 @@ const Services = () => {
 
   const canManageServices = user?.role === "MODERATOR";
   const canExecute = user?.role === "ADMIN";
+  const showActions = user?.role !== "ADMIN";
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -178,64 +178,74 @@ const Services = () => {
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-8 flex items-center justify-center text-gray-500">
             <Loader />
           </div>
+        ) : services.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No services found</div>
         ) : (
-          <table className="min-w-full divide-y">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {services.map((service) => (
-                <tr key={service._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">{service.name}</td>
-                  <td className="px-6 py-4">
-                    {service.basePrice !== undefined
-                      ? formatCurrency(service.basePrice)
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 flex gap-2">
-                    {canExecute && (
-                      <button
-                        onClick={() => executeService(service._id)}
-                        className="text-green-600 hover:text-green-800"
-                        title="Execute Service"
-                      >
-                        <Play size={18} />
-                      </button>
-                    )}
-                    {canManageServices && (
-                      <>
-                        <button
-                          onClick={() => handleEdit(service)}
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Edit Service"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={() => deleteService(service._id)}
-                          className="text-red-600 hover:text-red-800"
-                          title="Delete Service"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </>
-                    )}
-                  </td>
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 240px)" }}>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">Name</th>
+                  <th className="px-4 py-2 text-right text-xs font-bold uppercase">Price (TSh)</th>
+                  {showActions && (
+                    <th className="px-4 py-2 text-center text-xs font-bold uppercase">
+                      Actions
+                    </th>
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {services.map((service) => (
+                  <tr key={service._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-900">{service.name}</td>
+                    <td className="px-4 py-2 text-right">
+                      {service.basePrice !== undefined
+                        ? service.basePrice.toLocaleString()
+                        : "-"}
+                    </td>
+                    {showActions && (
+                      <td className="px-4 py-2 text-center">
+                        <div className="flex justify-center gap-2">
+                          {canExecute && (
+                            <button
+                              onClick={() => executeService(service._id)}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded"
+                              title="Execute Service"
+                            >
+                              <Play size={16} />
+                            </button>
+                          )}
+                          {canManageServices && (
+                            <>
+                              <button
+                                onClick={() => handleEdit(service)}
+                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                title="Edit Service"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => deleteService(service._id)}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                title="Delete Service"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

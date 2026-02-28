@@ -18,7 +18,6 @@ const Expenses = () => {
   const [formData, setFormData] = useState({
     category: "",
     amount: "",
-    description: "",
     date: "",
     receipt: null,
   });
@@ -67,7 +66,6 @@ const Expenses = () => {
       const data = new FormData();
       data.append("category", formData.category.trim());
       data.append("amount", Number(formData.amount));
-      data.append("description", formData.description.trim());
       data.append("date", formData.date);
 
       if (formData.receipt) {
@@ -81,7 +79,6 @@ const Expenses = () => {
       setFormData({
         category: "",
         amount: "",
-        description: "",
         date: "",
         receipt: null,
       });
@@ -183,28 +180,25 @@ const Expenses = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Huduma
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Matumizi ya Ghala
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
-                  Maelezo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Amount (TSh)
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Receipt
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                <th className="px-6 py-3 text-left text-xs font-bold uppercase">
                   Actions
                 </th>
               </tr>
@@ -212,7 +206,7 @@ const Expenses = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {expenses.map((expense) => (
                 <tr key={expense._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium">
+                  <td className="px-6 py-4 text-sm">
                     {expense.category}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
@@ -235,9 +229,6 @@ const Expenses = () => {
                     ) : (
                       "-"
                     )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {expense.description || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {formatCurrency(expense.amount)}
@@ -327,20 +318,6 @@ const Expenses = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Maelezo (kwa Kiswahili)
-                </label>
-                <input
-                  type="text"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium mb-1">Date *</label>
                 <input
                   type="date"
@@ -380,7 +357,6 @@ const Expenses = () => {
                     setFormData({
                       category: "",
                       amount: "",
-                      description: "",
                       date: "",
                       receipt: null,
                     });
@@ -454,8 +430,8 @@ const Expenses = () => {
                   <tr className="text-gray-600">
                     <th className="pb-2">Service</th>
                     <th className="pb-2 text-right">Qty</th>
-                    <th className="pb-2 text-right">Price</th>
-                    <th className="pb-2 text-right">Total</th>
+                    <th className="pb-2 text-right">Price (TSh)</th>
+                    <th className="pb-2 text-right">Total (TSh)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -472,10 +448,10 @@ const Expenses = () => {
                           {Number(qty || 0).toFixed(3)}
                         </td>
                         <td className="py-2 text-right">
-                          TSh {price.toLocaleString()}
+                          {price.toLocaleString()}
                         </td>
                         <td className="py-2 text-right">
-                          TSh {line.toLocaleString()}
+                          {line.toLocaleString()}
                         </td>
                       </tr>
                     );
@@ -488,7 +464,6 @@ const Expenses = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span>
-                      TSh{" "}
                       {(
                         selectedInvoice.subtotal ||
                         selectedInvoice.total ||
@@ -499,13 +474,13 @@ const Expenses = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Discount</span>
                     <span>
-                      TSh {selectedInvoice.discount?.toLocaleString() || 0}
+                      {selectedInvoice.discount?.toLocaleString() || 0}
                     </span>
                   </div>
                   <div className="flex justify-between font-medium mt-2">
-                    <span>Total</span>
+                    <span>Total (TSh)</span>
                     <span>
-                      TSh {selectedInvoice.total?.toLocaleString() || 0}
+                      {selectedInvoice.total?.toLocaleString() || 0}
                     </span>
                   </div>
                 </div>

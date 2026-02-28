@@ -203,79 +203,83 @@ const Inventory = () => {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         {loading ? (
           <div className="p-8 flex justify-center">
             <Loader />
           </div>
+        ) : inventory.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">No inventory items found</div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Item
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Qty
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">
-                  Unit
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">
-                  Cost/Unit
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">
-                  Reorder
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {inventory.map((item) => (
-                <tr key={item._id}>
-                  <td className="px-3 md:px-6 py-3 md:py-4 font-medium text-sm">{item.name}</td>
-                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm">{Number(item.quantity || 0).toFixed(3)}</td>
-                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden sm:table-cell">{item.unit || "-"}</td>
-                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden md:table-cell">
-                    {Number(item.costPerUnit || 0).toLocaleString()}
-                  </td>
-                  <td className="px-3 md:px-6 py-3 md:py-4 text-sm hidden lg:table-cell">{item.reorderLevel ?? "-"}</td>
-                  <td className="px-3 md:px-6 py-3 md:py-4">
-                    {isLowStock(item) ? (
-                      <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full whitespace-nowrap">
-                        Low
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full whitespace-nowrap">
-                        OK
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 md:px-6 py-3 md:py-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="text-blue-600 p-1"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item._id)}
-                        className="text-red-600 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 240px)" }}>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">
+                    Item
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-bold uppercase">
+                    Qty
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase hidden sm:table-cell">
+                    Unit
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-bold uppercase hidden md:table-cell">
+                    Cost/Unit
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-bold uppercase hidden lg:table-cell">
+                    Reorder
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {inventory.map((item) => (
+                  <tr key={item._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-sm">{item.name}</td>
+                    <td className="px-4 py-2 text-right text-sm">{Number(item.quantity || 0).toFixed(3)}</td>
+                    <td className="px-4 py-2 text-sm hidden sm:table-cell">{item.unit || "-"}</td>
+                    <td className="px-4 py-2 text-right text-sm hidden md:table-cell">
+                      {Number(item.costPerUnit || 0).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-2 text-right text-sm hidden lg:table-cell">{item.reorderLevel ?? "-"}</td>
+                    <td className="px-4 py-2 text-center">
+                      {isLowStock(item) ? (
+                        <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full whitespace-nowrap">
+                          Low
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full whitespace-nowrap">
+                          OK
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <div className="flex justify-center gap-1">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
