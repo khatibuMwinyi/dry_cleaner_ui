@@ -32,8 +32,8 @@ const JobTracking = () => {
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const { user } = useAuth();
 
-  const isAdmin = user?.role === "ADMIN";
-  const isCleaner = user?.role === "CLEANER";
+  const isClerk = user?.role === "CLERK";
+  const isOperator = user?.role === "OPERATOR";
 
   useEffect(() => {
     fetchJobs();
@@ -206,13 +206,13 @@ const JobTracking = () => {
         class: "bg-green-100 text-green-800",
         icon: <Check className="w-4 h-4 mr-1" />,
       },
-      "denied-admin": {
-        label: "Denied (Admin)",
+      "denied-clerk": {
+        label: "Denied (Clerk)",
         class: "bg-red-100 text-red-800",
         icon: <XCircle className="w-4 h-4 mr-1" />,
       },
-      "denied-cleaner": {
-        label: "Denied (Cleaner)",
+      "denied-operator": {
+        label: "Denied (Operator)",
         class: "bg-red-100 text-red-800",
         icon: <XCircle className="w-4 h-4 mr-1" />,
       },
@@ -265,7 +265,7 @@ const JobTracking = () => {
       </button>
     );
 
-    if (isCleaner && job.status === "waiting") {
+    if (isOperator && job.status === "waiting") {
       actions.push(
         <button
           key="receive"
@@ -278,7 +278,7 @@ const JobTracking = () => {
       );
     }
 
-    if (isCleaner && job.status === "received") {
+    if (isOperator && job.status === "received") {
       actions.push(
         <button
           key="execute"
@@ -291,7 +291,7 @@ const JobTracking = () => {
       );
     }
 
-    if (isAdmin && job.status === "complete") {
+    if (isClerk && job.status === "complete") {
       actions.push(
         <button
           key="verify"
@@ -304,7 +304,7 @@ const JobTracking = () => {
       );
     }
 
-    if (isAdmin && job.status === "success") {
+    if (isClerk && job.status === "success") {
       actions.push(
         <button
           key="notify"
@@ -317,7 +317,7 @@ const JobTracking = () => {
       );
     }
 
-    if ((isAdmin || isCleaner) && !["success", "denied-admin", "denied-cleaner"].includes(job.status)) {
+    if ((isClerk || isOperator) && !["success", "denied-clerk", "denied-operator"].includes(job.status)) {
       actions.push(
         <button
           key="deny"
@@ -578,7 +578,7 @@ const JobTracking = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-xl font-bold">
-                {isAdmin ? "Deny as Admin" : "Deny as Cleaner"}
+                {isClerk ? "Deny as Clerk" : "Deny as Operator"}
               </h2>
               <button
                 onClick={() => setShowDenyModal(false)}
@@ -704,7 +704,7 @@ const JobTracking = () => {
                 </div>
               )}
 
-              {["denied-admin", "denied-cleaner"].includes(selectedJob.status) && (
+              {["denied-clerk", "denied-operator"].includes(selectedJob.status) && (
                 <div className="bg-red-50 p-4 rounded-lg">
                   <div className="grid grid-cols-2 gap-4 mb-2">
                     <div>

@@ -23,8 +23,8 @@ const StatusBadge = ({ status, type = 'payment' }) => {
           return { bg: 'bg-purple-100', text: 'text-purple-800', icon: 'check', label: 'Complete' };
         case 'success':
           return { bg: 'bg-green-100', text: 'text-green-800', icon: 'check', label: 'Success' };
-        case 'denied-admin':
-        case 'denied-cleaner':
+        case 'denied-clerk':
+        case 'denied-operator':
           return { bg: 'bg-red-100', text: 'text-red-800', icon: 'x', label: 'Denied' };
         default:
           return { bg: 'bg-gray-100', text: 'text-gray-800', icon: 'clock', label: status || 'Unknown' };

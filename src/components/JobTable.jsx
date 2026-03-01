@@ -8,8 +8,8 @@ const JobTable = ({
   onVerify, 
   onDeny,
   onSendPickup,
-  isAdmin = false,
-  isCleaner = false 
+  isClerk = false,
+  isOperator = false 
 }) => {
   const getStatusBadge = (status) => {
     return <StatusBadge status={status} type="job" />;
@@ -32,7 +32,7 @@ const JobTable = ({
       </button>
     );
 
-    if (isCleaner && job.status === "waiting") {
+    if (isOperator && job.status === "waiting") {
       actions.push(
         <button
           key="receive"
@@ -47,7 +47,7 @@ const JobTable = ({
       );
     }
 
-    if (isCleaner && job.status === "received") {
+    if (isOperator && job.status === "received") {
       actions.push(
         <button
           key="execute"
@@ -63,7 +63,7 @@ const JobTable = ({
       );
     }
 
-    if (isAdmin && job.status === "complete") {
+    if (isClerk && job.status === "complete") {
       actions.push(
         <button
           key="verify"
@@ -78,7 +78,7 @@ const JobTable = ({
       );
     }
 
-    if (isAdmin && job.status === "success") {
+    if (isClerk && job.status === "success") {
       actions.push(
         <button
           key="notify"
@@ -93,7 +93,7 @@ const JobTable = ({
       );
     }
 
-    if ((isAdmin || isCleaner) && !["success", "denied-admin", "denied-cleaner"].includes(job.status)) {
+    if ((isClerk || isOperator) && !["success", "denied-clerk", "denied-operator"].includes(job.status)) {
       actions.push(
         <button
           key="deny"
