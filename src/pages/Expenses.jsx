@@ -252,7 +252,7 @@ const Expenses = () => {
                   </td>
 <td className="px-6 py-4 text-sm">
                     <div className="flex gap-2">
-                      {expense.invoice && user?.role === "MODERATOR" && (
+                      {expense.invoice && user?.role === "ADMIN" && (
                         <button
                           onClick={() => handlePreviewInvoice(expense.invoice._id)}
                           className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
@@ -261,7 +261,7 @@ const Expenses = () => {
                           <Eye className="w-4 h-4" /> Invoice
                         </button>
                       )}
-                      {user?.role === "MODERATOR" ? (
+                      {user?.role === "ADMIN" ? (
                         <button
                           onClick={() => handleDelete(expense._id)}
                           className="text-red-600 hover:text-red-800 flex items-center gap-1"

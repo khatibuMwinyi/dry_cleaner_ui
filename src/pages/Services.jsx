@@ -160,9 +160,9 @@ const Services = () => {
     );
   };
 
-  const canManageServices = user?.role === "MODERATOR";
-  const canExecute = user?.role === "ADMIN";
-  const showActions = user?.role !== "ADMIN";
+  const canManageServices = user?.role === "ADMIN";
+  const canExecute = user?.role === "CLERK";
+  const showActions = user?.role !== "CLERK";
 
   return (
     <div className="space-y-4 md:space-y-6">

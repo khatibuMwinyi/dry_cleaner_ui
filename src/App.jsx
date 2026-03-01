@@ -29,7 +29,7 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      <ProtectedRoute allowRoles={["MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["ADMIN"]}>
                         <Dashboard />
                       </ProtectedRoute>
                     }
@@ -37,7 +37,7 @@ function App() {
                   <Route
                     path="/customers"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN"]}>
+                      <ProtectedRoute allowRoles={["CLERK"]}>
                         <Customers />
                       </ProtectedRoute>
                     }
@@ -45,7 +45,7 @@ function App() {
                   <Route
                     path="/invoices"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN"]}>
+                      <ProtectedRoute allowRoles={["CLERK"]}>
                         <Invoices />
                       </ProtectedRoute>
                     }
@@ -53,7 +53,7 @@ function App() {
                   <Route
                     path="/services"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["CLERK", "ADMIN"]}>
                         <Services />
                       </ProtectedRoute>
                     }
@@ -61,7 +61,7 @@ function App() {
                   <Route
                     path="/expenses"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["CLERK", "ADMIN"]}>
                         <Expenses />
                       </ProtectedRoute>
                     }
@@ -69,7 +69,7 @@ function App() {
                   <Route
                     path="/inventory"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["CLERK", "ADMIN"]}>
                         <Inventory />
                       </ProtectedRoute>
                     }
@@ -77,7 +77,7 @@ function App() {
                   <Route
                     path="/reports"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["CLERK", "ADMIN"]}>
                         <Reports />
                       </ProtectedRoute>
                     }
@@ -85,7 +85,7 @@ function App() {
                   <Route
                     path="/register-admin"
                     element={
-                      <ProtectedRoute allowRoles={["MODERATOR"]}>
+                      <ProtectedRoute allowRoles={["ADMIN"]}>
                         <RegisterAdmin />
                       </ProtectedRoute>
                     }
@@ -93,7 +93,7 @@ function App() {
                   <Route
                     path="/job-tracking"
                     element={
-                      <ProtectedRoute allowRoles={["ADMIN", "CLEANER"]}>
+                      <ProtectedRoute allowRoles={["CLERK", "OPERATOR"]}>
                         <JobTracking />
                       </ProtectedRoute>
                     }

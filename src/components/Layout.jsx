@@ -20,7 +20,7 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    ...(user?.role === "ADMIN"
+    ...(user?.role === "CLERK"
       ? [
           { path: "/customers", icon: Users, label: "Customers" },
           { path: "/invoices", icon: FileText, label: "Invoices" },
@@ -29,7 +29,7 @@ const Layout = ({ children }) => {
           { path: "/expenses", icon: DollarSign, label: "Expenses" },
         ]
       : []),
-    ...(user?.role === "MODERATOR"
+    ...(user?.role === "ADMIN"
       ? [
           { path: "/", icon: LayoutDashboard, label: "Dashboard" },
           { path: "/services", icon: Settings, label: "Services" },
@@ -39,7 +39,7 @@ const Layout = ({ children }) => {
           { path: "/register-admin", icon: Users, label: "Register User" }
         ]
       : []),
-    ...(user?.role === "CLEANER"
+    ...(user?.role === "OPERATOR"
       ? [
           { path: "/job-tracking", icon: ClipboardList, label: "Job Tracking" },
         ]

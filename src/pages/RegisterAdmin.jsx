@@ -5,16 +5,16 @@ import Loader from "../components/Loader";
 
 const RegisterAdmin = () => {
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", role: "ADMIN" });
+  const [form, setForm] = useState({ email: "", password: "", role: "CLERK" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await authAPI.registerUser(form);
-      const roleLabel = form.role === "ADMIN" ? "Admin" : "Cleaner";
+      const roleLabel = form.role === "CLERK" ? "Laundry Clerk" : "Laundry Operator";
       toast.success(`${roleLabel} mpya amesajiliwa`);
-      setForm({ email: "", password: "", role: "ADMIN" });
+      setForm({ email: "", password: "", role: "CLERK" });
     } catch (err) {
       toast.error(err.response?.data?.message || "Imeshindikana kusajili mtumiaji");
     } finally {
@@ -27,7 +27,7 @@ const RegisterAdmin = () => {
       <div className="sticky top-0 z-20 bg-[#DDE1E8] -mx-4 md:-mx-6 lg:-mx-8 -mt-4 md:-mt-6 lg:-mt-8 px-4 md:px-6 lg:px-8 pt-4 md:pt-6 pb-3 md:pb-4">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800">Register User</h1>
         <p className="text-gray-600 mt-1 text-sm md:text-base">
-          Moderator anaweza kusajili admin au cleaner mpya
+          Admin anaweza kusajili laundry clerk au laundry operator mpya
         </p>
       </div>
 
@@ -42,8 +42,8 @@ const RegisterAdmin = () => {
               onChange={(e) => setForm({ ...form, role: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none border-b-2"
             >
-              <option value="ADMIN">Admin</option>
-              <option value="CLEANER">Cleaner</option>
+              <option value="CLERK">Laundry Clerk</option>
+              <option value="OPERATOR">Laundry Operator</option>
             </select>
           </div>
           <div>
@@ -77,7 +77,7 @@ const RegisterAdmin = () => {
             disabled={loading}
             className="bg-[#2D3A58] hover:bg-[#0F172A] text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
-            {loading ? <Loader /> : `Create ${form.role === "ADMIN" ? "Admin" : "Cleaner"}`}
+            {loading ? <Loader /> : `Create ${form.role === "CLERK" ? "Laundry Clerk" : "Laundry Operator"}`}
           </button>
         </form>
       </div>
