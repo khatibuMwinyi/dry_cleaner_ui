@@ -17,7 +17,9 @@ const Login = () => {
       const res = await login({ email: form.email, password: form.password });
       const user = JSON.parse(localStorage.getItem("user"));
       toast.success("Umefanikiwa kuingia kwenye mfumo");
-      if (user?.role === "OPERATOR") {
+      if (user?.role === "CLERK") {
+        navigate("/customers", { replace: true });
+      } else if (user?.role === "OPERATOR") {
         navigate("/job-tracking", { replace: true });
       } else {
         navigate("/", { replace: true });
