@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { Plus, Play, Trash2, Edit } from "lucide-react";
+import { Plus, Play, Trash2, Edit, Search } from "lucide-react";
 import { serviceAPI } from "../api/serviceApi.js";
 import { inventoryAPI } from "../api/inventoryApi.js";
 import Dropdown from "../components/Dropdown";
@@ -12,14 +12,36 @@ const Services = () => {
   const [services, setServices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
     name: "",
+    category: "",
+    subCategory: "",
     basePrice: "",
     consumables: [],
   });
+
+  const categories = [
+    "MEN",
+    "WOMEN",
+    "KIDS",
+    "BEDDING",
+    "CURTAINS",
+    "HOUSEHOLD ITEMS",
+  ];
+
+  const subCategories = {
+    "MEN": ["Suits & Formal", "Jackets & Coats", "Tops", "Bottoms", "Accessories & Innerwear", "Workwear"],
+    "WOMEN": ["Suits & Formal", "Tops", "Bottoms", "Accessories & Innerwear"],
+    "KIDS": ["Suits & Formal", "Dresses", "Tops", "Bottoms", "Outerwear", "Others"],
+    "BEDDING": ["Bed Sheets", "Duvets & Quilts", "Blankets", "Pillow & Covers"],
+    "CURTAINS": ["Standard Curtains", "Sheer Curtains"],
+    "HOUSEHOLD ITEMS": ["Towels & Linen", "Covers", "Carpets & Mats", "Footwear", "Bags & Travel Items", "Miscellaneous"],
+  };
 
   useEffect(() => {
     loadData();
@@ -40,6 +62,16 @@ const Services = () => {
       setLoading(false);
     }
   };
+
+  const filteredServices = services.filter((service) => {
+    const searchLower = search.toLowerCase();
+    const matchesSearch =
+      service.name.toLowerCase().includes(searchLower) ||
+      service.category.toLowerCase().includes(searchLower) ||
+      service.subCategory.toLowerCase().includes(searchLower);
+    const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
+    return matchesSearch && matchesCategory;
+  });
 
   const addConsumable = () => {
     setForm({
@@ -62,8 +94,8 @@ const Services = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.basePrice) {
-      toast.error("Name and price required");
+    if (!form.name || !form.basePrice || !form.category || !form.subCategory) {
+      toast.error("Name, category, subCategory and price required");
       return;
     }
 
@@ -71,6 +103,8 @@ const Services = () => {
       if (editingService) {
         await serviceAPI.update(editingService._id, {
           name: form.name.trim(),
+          category: form.category,
+          subCategory: form.subCategory,
           basePrice: Number(form.basePrice),
           consumables: form.consumables.map((c) => ({
             inventory: c.inventory,
@@ -81,6 +115,8 @@ const Services = () => {
       } else {
         await serviceAPI.create({
           name: form.name.trim(),
+          category: form.category,
+          subCategory: form.subCategory,
           basePrice: Number(form.basePrice),
           consumables: form.consumables.map((c) => ({
             inventory: c.inventory,
@@ -91,7 +127,7 @@ const Services = () => {
       }
       setShowModal(false);
       setEditingService(null);
-      setForm({ name: "", basePrice: "", consumables: [] });
+      setForm({ name: "", category: "", subCategory: "", basePrice: "", consumables: [] });
       loadData();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save service");
@@ -102,6 +138,8 @@ const Services = () => {
     setEditingService(service);
     setForm({
       name: service.name,
+      category: service.category,
+      subCategory: service.subCategory,
       basePrice: service.basePrice,
       consumables: service.consumables.map((c) => ({
         inventory: c.inventory?._id || c.inventory,
@@ -114,7 +152,7 @@ const Services = () => {
   const handleCancel = () => {
     setShowModal(false);
     setEditingService(null);
-    setForm({ name: "", basePrice: "", consumables: [] });
+    setForm({ name: "", category: "", subCategory: "", basePrice: "", consumables: [] });
   };
 
   const executeService = async (id) => {
@@ -168,14 +206,36 @@ const Services = () => {
     <div className="space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Services</h1>
-        {canManageServices && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm md:text-base w-fit"
+        <div className="flex gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64 text-sm"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="border px-3 py-2 rounded-lg text-sm"
           >
-            <Plus size={18} /> <span className="hidden sm:inline">Add Service</span><span className="sm:hidden">Add</span>
-          </button>
-        )}
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          {canManageServices && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-[#2D3A58] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm md:text-base w-fit"
+            >
+              <Plus size={18} /> <span className="hidden sm:inline">Add Service</span><span className="sm:hidden">Add</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -183,14 +243,16 @@ const Services = () => {
           <div className="p-8 flex items-center justify-center text-gray-500">
             <Loader />
           </div>
-        ) : services.length === 0 ? (
+        ) : filteredServices.length === 0 ? (
           <div className="p-8 text-center text-gray-500">No services found</div>
         ) : (
-          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 240px)" }}>
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase w-12">#</th>
                   <th className="px-4 py-2 text-left text-xs font-bold uppercase">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-bold uppercase">Sub-Category</th>
                   <th className="px-4 py-2 text-right text-xs font-bold uppercase">Price (TSh)</th>
                   {showActions && (
                     <th className="px-4 py-2 text-center text-xs font-bold uppercase">
@@ -200,9 +262,11 @@ const Services = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {services.map((service) => (
+                {filteredServices.map((service, index) => (
                   <tr key={service._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-center text-gray-500">{index + 1}</td>
                     <td className="px-4 py-2 text-gray-900">{service.name}</td>
+                    <td className="px-4 py-2 text-gray-600">{service.subCategory}</td>
                     <td className="px-4 py-2 text-right">
                       {service.basePrice !== undefined
                         ? service.basePrice.toLocaleString()
@@ -265,6 +329,29 @@ const Services = () => {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full border px-3 py-2 rounded"
             />
+
+            <select
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value, subCategory: "" })}
+              className="w-full border px-3 py-2 rounded"
+            >
+              <option value="">Select category</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            <select
+              value={form.subCategory}
+              onChange={(e) => setForm({ ...form, subCategory: e.target.value })}
+              className="w-full border px-3 py-2 rounded"
+              disabled={!form.category}
+            >
+              <option value="">Select sub-category</option>
+              {form.category && subCategories[form.category]?.map((sub) => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
 
             <input
               type="number"
