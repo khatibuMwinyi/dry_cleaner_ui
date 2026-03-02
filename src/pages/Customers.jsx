@@ -123,6 +123,9 @@ const Customers = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 md:px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12">
+                  #
+                </th>
                 <th className="px-4 md:px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">
                   Name
                 </th>
@@ -141,8 +144,11 @@ const Customers = () => {
               </tr>
             </thead>
             <tbody className="bg-[#F8F8F9] divide-y divide-gray-200">
-              {filteredCustomers.map((customer) => (
+              {filteredCustomers.map((customer, index) => (
                 <tr key={customer._id} className="hover:bg-gray-50">
+                  <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
+                    {index + 1}
+                  </td>
                   <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {customer.name}
                   </td>

@@ -117,29 +117,31 @@ const JobTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Invoice #</th>
-              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Submitted</th>
-              <th className="px-6 py-3 text-left text-xs font-bold uppercase">Cloth Count</th>
-              <th className="px-6 py-3 text-center text-xs font-bold uppercase">Status</th>
-              <th className="px-6 py-3 text-center text-xs font-bold uppercase">Actions</th>
+              <th className="px-4 py-2 text-center text-xs font-bold uppercase w-12">#</th>
+              <th className="px-4 py-2 text-left text-xs font-bold uppercase">Invoice #</th>
+              <th className="px-4 py-2 text-left text-xs font-bold uppercase">Customer</th>
+              <th className="px-4 py-2 text-left text-xs font-bold uppercase">Phone</th>
+              <th className="px-4 py-2 text-left text-xs font-bold uppercase">Submitted</th>
+              <th className="px-4 py-2 text-left text-xs font-bold uppercase">Cloth Count</th>
+              <th className="px-4 py-2 text-center text-xs font-bold uppercase">Status</th>
+              <th className="px-4 py-2 text-center text-xs font-bold uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {jobs.map((job) => (
+            {jobs.map((job, index) => (
               <tr key={job._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-gray-900">#{job.invoiceNumber}</td>
-                <td className="px-6 py-4 text-gray-900">{job.customerName}</td>
-                <td className="px-6 py-4 text-gray-600">{job.customerPhone || "-"}</td>
-                <td className="px-6 py-4 text-gray-600">
+                <td className="px-4 py-2 text-center text-sm text-gray-500">{index + 1}</td>
+                <td className="px-4 py-2 text-gray-900">#{job.invoiceNumber}</td>
+                <td className="px-4 py-2 text-gray-900">{job.customerName}</td>
+                <td className="px-4 py-2 text-gray-600">{job.customerPhone || "-"}</td>
+                <td className="px-4 py-2 text-gray-600">
                   {job.submittedDate ? new Date(job.submittedDate).toLocaleDateString() : "-"}
                 </td>
-                <td className="px-6 py-4 text-gray-600">
+                <td className="px-4 py-2 text-gray-600">
                   {job.actualClothCount || job.notedClothCount || "-"}
                 </td>
-                <td className="px-6 py-4 text-center">{getStatusBadge(job.status)}</td>
-                <td className="px-6 py-4 text-center">
+                <td className="px-4 py-2 text-center">{getStatusBadge(job.status)}</td>
+                <td className="px-4 py-2 text-center">
                   <div className="flex justify-center gap-2">{renderActions(job)}</div>
                 </td>
               </tr>

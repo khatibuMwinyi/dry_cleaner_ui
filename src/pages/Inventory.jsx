@@ -215,6 +215,7 @@ const Inventory = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
+                  <th className="px-4 py-2 text-center text-xs font-bold uppercase w-12">#</th>
                   <th className="px-4 py-2 text-left text-xs font-bold uppercase">
                     Item
                   </th>
@@ -239,8 +240,9 @@ const Inventory = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {inventory.map((item) => (
+                {inventory.map((item, index) => (
                   <tr key={item._id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-center text-sm text-gray-500">{index + 1}</td>
                     <td className="px-4 py-2 text-sm">{item.name}</td>
                     <td className="px-4 py-2 text-right text-sm">{Number(item.quantity || 0).toFixed(3)}</td>
                     <td className="px-4 py-2 text-sm hidden sm:table-cell">{item.unit || "-"}</td>
