@@ -17,6 +17,8 @@ const Invoices = () => {
   const [showModal, setShowModal] = useState(false);
   const [previewModal, setPreviewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [subCategoryFilter, setSubCategoryFilter] = useState("");
   const [formData, setFormData] = useState({
     customerId: "",
     items: [{ serviceId: "", quantity: 1 }],
@@ -25,6 +27,30 @@ const Invoices = () => {
   });
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const categories = [
+    "MEN",
+    "WOMEN",
+    "KIDS",
+    "BEDDING",
+    "CURTAINS",
+    "HOUSEHOLD ITEMS",
+  ];
+
+  const subCategories = {
+    "MEN": ["Suits & Formal", "Jackets & Coats", "Tops", "Bottoms", "Accessories & Innerwear", "Workwear"],
+    "WOMEN": ["Suits & Formal", "Tops", "Bottoms", "Accessories & Innerwear"],
+    "KIDS": ["Suits & Formal", "Dresses", "Tops", "Bottoms", "Outerwear", "Others"],
+    "BEDDING": ["Bed Sheets", "Duvets & Quilts", "Blankets", "Pillow & Covers"],
+    "CURTAINS": ["Standard Curtains", "Sheer Curtains"],
+    "HOUSEHOLD ITEMS": ["Towels & Linen", "Covers", "Carpets & Mats", "Footwear", "Bags & Travel Items", "Miscellaneous"],
+  };
+
+  const filteredServicesForForm = services.filter((service) => {
+    if (categoryFilter && service.category !== categoryFilter) return false;
+    if (subCategoryFilter && service.subCategory !== subCategoryFilter) return false;
+    return true;
+  });
 
   useEffect(() => {
     fetchData();
@@ -261,6 +287,8 @@ const Invoices = () => {
         discount: 0,
         pickupDate: "",
       });
+      setCategoryFilter("");
+      setSubCategoryFilter("");
       fetchData();
       toast.success("Invoice created successfully!");
     } catch (error) {
@@ -485,6 +513,35 @@ const Invoices = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Items
                 </label>
+                
+                {/* Category Filters */}
+                <div className="flex gap-2 mb-3">
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => {
+                      setCategoryFilter(e.target.value);
+                      setSubCategoryFilter("");
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={subCategoryFilter}
+                    onChange={(e) => setSubCategoryFilter(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    disabled={!categoryFilter}
+                  >
+                    <option value="">All Sub-Categories</option>
+                    {categoryFilter && subCategories[categoryFilter]?.map((sub) => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {formData.items.map((item, index) => (
                   <div key={index} className="flex gap-2 mb-2">
                     <Dropdown
@@ -493,9 +550,10 @@ const Invoices = () => {
                       onChange={(value) =>
                         handleItemChange(index, "serviceId", value)
                       }
-                      options={services}
+                      options={filteredServicesForForm}
                       placeholder="Service"
                       className="flex-1"
+                      getOptionLabel={(service) => `${service.name} (${service.subCategory})`}
                     />
                     <input
                       type="number"
@@ -585,6 +643,8 @@ const Invoices = () => {
                       discount: 0,
                       pickupDate: "",
                     });
+                    setCategoryFilter("");
+                    setSubCategoryFilter("");
                   }}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
                 >
